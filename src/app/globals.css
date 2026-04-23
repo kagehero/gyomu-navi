@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 20% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
+
+    --primary: 215 70% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 25% 93%;
+    --secondary-foreground: 220 20% 25%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 50%;
+
+    --accent: 210 30% 90%;
+    --accent-foreground: 215 70% 40%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 150 60% 40%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 90% 50%;
+    --warning-foreground: 30 80% 15%;
+
+    --info: 200 80% 50%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 215 70% 45%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 20% 15%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 215 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 18% 22%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 15% 25%;
+    --sidebar-ring: 215 70% 55%;
+    --sidebar-muted: 220 15% 30%;
+
+    --font-sans: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .dark {
+    --background: 222 20% 8%;
+    --foreground: 210 20% 90%;
+    --card: 222 20% 12%;
+    --card-foreground: 210 20% 90%;
+    --popover: 222 20% 12%;
+    --popover-foreground: 210 20% 90%;
+    --primary: 215 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 20% 18%;
+    --secondary-foreground: 210 20% 85%;
+    --muted: 217 20% 16%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 217 20% 20%;
+    --accent-foreground: 215 70% 60%;
+    --destructive: 0 62% 35%;
+    --destructive-foreground: 210 20% 90%;
+    --border: 217 20% 20%;
+    --input: 217 20% 20%;
+    --ring: 215 70% 55%;
+    --sidebar-background: 222 25% 6%;
+    --sidebar-foreground: 210 20% 80%;
+    --sidebar-primary: 215 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 20% 12%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 222 15% 15%;
+    --sidebar-ring: 215 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "palt";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .kpi-card {
+    @apply bg-card rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md;
+  }
+
+  .page-header {
+    @apply text-xl font-semibold text-foreground mb-4;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table th {
+    @apply bg-muted/50 px-3 py-2.5 text-left font-medium text-muted-foreground text-xs uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-3 py-2.5 border-b border-border/50;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+}
+
+/* 従業員ロール: スマートフォン向けのタッチ最適化 */
+.employee-mobile {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.employee-nav-safe {
+  padding-left: max(0.5rem, env(safe-area-inset-left));
+  padding-right: max(0.5rem, env(safe-area-inset-right));
+}
