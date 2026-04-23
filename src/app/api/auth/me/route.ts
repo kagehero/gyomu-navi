@@ -7,7 +7,8 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   const id = getAuthedUserIdFromRequest(request);
   if (!id) {
-    return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    /** 200 + null avoids browser console treating “no session” as a failed fetch. */
+    return NextResponse.json({ user: null });
   }
   const pool = getPool();
   const { rows } = await pool.query<{
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   }>(`SELECT id, email, display_name, app_role, staff_profile_id FROM users WHERE id = $1`, [id]);
   const row = rows[0];
   if (!row) {
-    return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 401 });
+    return NextResponse.json({ user: null });
   }
   if (row.app_role !== "admin" && row.app_role !== "employee") {
     return NextResponse.json({ error: "不正なアカウント役割" }, { status: 500 });

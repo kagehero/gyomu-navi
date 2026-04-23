@@ -8,13 +8,30 @@ const { Pool } = pg;
 
 let _pool: pg.Pool | null = null;
 
+/**
+ * `pg` / pg-connection-string warn when `sslmode` is `require` | `prefer` | `verify-ca`
+ * (see Node stderr). Use `verify-full` explicitly for the same effective behavior.
+ */
+function normalizeDatabaseUrlForPg(raw: string): string {
+  try {
+    const u = new URL(raw);
+    const mode = u.searchParams.get("sslmode")?.toLowerCase();
+    if (mode === "require" || mode === "prefer" || mode === "verify-ca") {
+      u.searchParams.set("sslmode", "verify-full");
+    }
+    return u.toString();
+  } catch {
+    return raw;
+  }
+}
+
 function createPool(): pg.Pool {
   if (!process.env.DATABASE_URL) {
     throw new Error(
       "DATABASE_URL is required (e.g. postgresql://user:pass@localhost:5432/gyomu_navi)",
     );
   }
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = normalizeDatabaseUrlForPg(process.env.DATABASE_URL);
   const useSsl =
     process.env.DATABASE_SSL === "true" ||
     /neon\.tech|sslmode=require|aiven\.io|supabase\.co|rds\.amazonaws\.com/i.test(
