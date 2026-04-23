@@ -121,6 +121,15 @@ src/lib/                 # api client, db, server auth helpers, mock data, utils
 - On a **single** Next deployment, the browser calls same-origin `/api/...` — no `NEXT_PUBLIC_API_BASE_URL` is required.
 - If the **browser** must call a **different** API host, set `NEXT_PUBLIC_API_BASE_URL` (no trailing slash) and configure cookies/CORS for cross-site use (`COOKIE_SAME_SITE=none` requires HTTPS).
 
+### Vercel
+
+1. **Project → Settings → Environment Variables** — add at least:
+   - `DATABASE_URL` — your Postgres URL (e.g. Neon; include SSL as in `.env.example`).
+   - `JWT_SECRET` — a long random string (32+ characters).
+2. **Redeploy** after adding or changing variables (Vercel does not always apply new envs to old deployments).
+3. **Database:** run migrations and seed **against the same** `DATABASE_URL` from your machine (or a CI job), e.g. `npm run db:migrate` and `npm run db:seed` with that URL exported. The production DB must contain the `users` table and rows, or login will return 401, not 500.
+4. If `/api/auth/login` returns **500**, check **Functions →** your deployment **→ Logs** for stack traces. Common causes: missing `DATABASE_URL` / `JWT_SECRET`, DB unreachable, or wrong SSL settings. If config is missing, the API now returns **503** with a `code: "config"` hint in JSON (after the latest code is deployed).
+
 ## License
 
 `private: true` in `package.json` — treat as internal / not published unless you change that.

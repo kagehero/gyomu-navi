@@ -16,6 +16,20 @@ function normalizeEmail(email: string) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!process.env.DATABASE_URL?.trim() || !process.env.JWT_SECRET?.trim()) {
+    console.error(
+      "[auth/login] Missing DATABASE_URL or JWT_SECRET in environment (e.g. set both in the Vercel project Settings → Environment Variables).",
+    );
+    return NextResponse.json(
+      {
+        error:
+          "サーバー設定が不足しています。DATABASE_URL と JWT_SECRET をデプロイ先の環境変数に設定してください。",
+        code: "config",
+      },
+      { status: 503 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -30,49 +44,58 @@ export async function POST(request: NextRequest) {
   }
   const { email, password } = parsed.data;
   const norm = normalizeEmail(email);
-  const pool = getPool();
-  const { rows } = await pool.query<{
-    id: string;
-    email: string;
-    password_hash: string;
-    display_name: string;
-    app_role: string;
-    staff_profile_id: string | null;
-  }>(
-    `SELECT id, email, password_hash, display_name, app_role, staff_profile_id FROM users WHERE email = $1`,
-    [norm],
-  );
-  const user = rows[0];
-  if (!user) {
+
+  try {
+    const pool = getPool();
+    const { rows } = await pool.query<{
+      id: string;
+      email: string;
+      password_hash: string;
+      display_name: string;
+      app_role: string;
+      staff_profile_id: string | null;
+    }>(
+      `SELECT id, email, password_hash, display_name, app_role, staff_profile_id FROM users WHERE email = $1`,
+      [norm],
+    );
+    const user = rows[0];
+    if (!user) {
+      return NextResponse.json(
+        { error: "メールアドレスまたはパスワードが違います" },
+        { status: 401 },
+      );
+    }
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) {
+      return NextResponse.json(
+        { error: "メールアドレスまたはパスワードが違います" },
+        { status: 401 },
+      );
+    }
+    const token = signUserToken({ id: user.id, email: user.email });
+    const opts = getCookieOptions();
+    const res = NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.display_name,
+        role: user.app_role === "employee" ? "employee" : "admin",
+        staffId: user.staff_profile_id,
+      },
+    });
+    res.cookies.set(getCookieName(), token, {
+      httpOnly: opts.httpOnly,
+      secure: opts.secure,
+      sameSite: opts.sameSite,
+      maxAge: Math.floor(opts.maxAge / 1000),
+      path: opts.path,
+    });
+    return res;
+  } catch (e) {
+    console.error("[auth/login]", e);
     return NextResponse.json(
-      { error: "メールアドレスまたはパスワードが違います" },
-      { status: 401 },
+      { error: "サーバーでエラーが発生しました。しばらくしてから再試行してください。" },
+      { status: 500 },
     );
   }
-  const ok = await bcrypt.compare(password, user.password_hash);
-  if (!ok) {
-    return NextResponse.json(
-      { error: "メールアドレスまたはパスワードが違います" },
-      { status: 401 },
-    );
-  }
-  const token = signUserToken({ id: user.id, email: user.email });
-  const opts = getCookieOptions();
-  const res = NextResponse.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      displayName: user.display_name,
-      role: user.app_role === "employee" ? "employee" : "admin",
-      staffId: user.staff_profile_id,
-    },
-  });
-  res.cookies.set(getCookieName(), token, {
-    httpOnly: opts.httpOnly,
-    secure: opts.secure,
-    sameSite: opts.sameSite,
-    maxAge: Math.floor(opts.maxAge / 1000),
-    path: opts.path,
-  });
-  return res;
 }
