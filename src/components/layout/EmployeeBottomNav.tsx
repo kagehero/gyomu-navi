@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, ClipboardList, Clock, MessageSquare } from "lucide-react";
+import { useReleaseMode } from "@/components/layout/ReleaseModeContext";
 import { cn } from "@/lib/utils";
 
 function pathIsActive(pathname: string, href: string, end: boolean) {
@@ -20,6 +21,8 @@ const items = [
 
 export function EmployeeBottomNav() {
   const pathname = usePathname() ?? "/";
+  const { dashboardOnly } = useReleaseMode();
+  const navItems = dashboardOnly ? items.filter((i) => i.href === "/") : items;
 
   return (
     <nav
@@ -27,7 +30,7 @@ export function EmployeeBottomNav() {
       aria-label="メインメニュー"
     >
       <div className="flex justify-around">
-        {items.map(({ href, end, label, icon: Icon }) => {
+        {navItems.map(({ href, end, label, icon: Icon }) => {
           const isActive = pathIsActive(pathname, href, end);
           return (
             <Link

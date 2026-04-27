@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useReleaseMode } from "@/components/layout/ReleaseModeContext";
 import {
   Sidebar,
   SidebarContent,
@@ -49,8 +50,10 @@ function displayInitial(name: string) {
 export function AppSidebar() {
   const { state } = useSidebar();
   const { user, logout } = useAuth();
+  const { dashboardOnly } = useReleaseMode();
   const router = useRouter();
   const collapsed = state === "collapsed";
+  const mainNav = dashboardOnly ? mainItems.filter((i) => i.url === "/") : mainItems;
 
   return (
     <Sidebar collapsible="icon">
@@ -75,7 +78,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -94,29 +97,31 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">
-            管理
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className="text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      activeClassName="bg-sidebar-accent font-medium text-sidebar-primary"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {!dashboardOnly && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">
+              管理
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        activeClassName="bg-sidebar-accent font-medium text-sidebar-primary"
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="space-y-2 border-t border-sidebar-border px-2 py-3">
