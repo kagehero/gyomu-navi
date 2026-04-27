@@ -1,4 +1,5 @@
 export { AdminOnlyRoute } from "./AdminOnlyRoute";
+export { ReleaseModeProvider, useReleaseMode } from "./ReleaseModeContext";
 export { AppLayout } from "./AppLayout";
 export { AppSidebar } from "./AppSidebar";
 export { EmployeeAppLayout } from "./EmployeeAppLayout";
