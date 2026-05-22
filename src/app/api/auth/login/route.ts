@@ -52,10 +52,13 @@ export async function POST(request: NextRequest) {
       email: string;
       password_hash: string;
       display_name: string;
-      app_role: string;
-      staff_profile_id: string | null;
+      app_role: "admin" | "manager" | "employee";
+      staff_id: string | null;
+      department_id: string | null;
     }>(
-      `SELECT id, email, password_hash, display_name, app_role, staff_profile_id FROM users WHERE email = $1`,
+      `SELECT id, email, password_hash, display_name, app_role, staff_id, department_id
+         FROM users
+        WHERE email = $1 AND deleted_at IS NULL`,
       [norm],
     );
     const user = rows[0];
@@ -79,8 +82,9 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         displayName: user.display_name,
-        role: user.app_role === "employee" ? "employee" : "admin",
-        staffId: user.staff_profile_id,
+        role: user.app_role,
+        staffId: user.staff_id,
+        departmentId: user.department_id,
       },
     });
     res.cookies.set(getCookieName(), token, {

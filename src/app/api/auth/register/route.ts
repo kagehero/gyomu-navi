@@ -43,12 +43,10 @@ export async function POST(request: NextRequest) {
       id: string;
       email: string;
       display_name: string;
-      app_role: string;
-      staff_profile_id: string | null;
     }>(
-      `INSERT INTO users (email, password_hash, display_name, app_role, staff_profile_id)
-       VALUES ($1, $2, $3, 'admin', NULL)
-       RETURNING id, email, display_name, app_role, staff_profile_id`,
+      `INSERT INTO users (email, password_hash, display_name, app_role, staff_id, department_id)
+       VALUES ($1, $2, $3, 'admin', NULL, NULL)
+       RETURNING id, email, display_name`,
       [norm, hash, displayName?.trim() ?? ""],
     );
     const u = rows[0]!;
@@ -62,6 +60,7 @@ export async function POST(request: NextRequest) {
           displayName: u.display_name,
           role: "admin" as const,
           staffId: null,
+          departmentId: null,
         },
       },
       { status: 201 },

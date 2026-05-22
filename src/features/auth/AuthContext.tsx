@@ -7,8 +7,9 @@ export type AuthUser = {
   id: string;
   email: string;
   displayName: string;
-  role: "admin" | "employee";
+  role: "admin" | "manager" | "employee";
   staffId: string | null;
+  departmentId: string | null;
 };
 
 function normalizeUser(u: AuthUser): AuthUser {
@@ -16,6 +17,7 @@ function normalizeUser(u: AuthUser): AuthUser {
     ...u,
     role: u.role ?? "admin",
     staffId: u.staffId ?? null,
+    departmentId: u.departmentId ?? null,
   };
 }
 

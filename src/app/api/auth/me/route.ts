@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   const id = getAuthedUserIdFromRequest(request);
   if (!id) {
-    /** 200 + null avoids browser console treating “no session” as a failed fetch. */
+    /** 200 + null avoids browser console treating "no session" as a failed fetch. */
     return NextResponse.json({ user: null });
   }
   const pool = getPool();
@@ -15,15 +15,18 @@ export async function GET(request: NextRequest) {
     id: string;
     email: string;
     display_name: string;
-    app_role: string;
-    staff_profile_id: string | null;
-  }>(`SELECT id, email, display_name, app_role, staff_profile_id FROM users WHERE id = $1`, [id]);
+    app_role: "admin" | "manager" | "employee";
+    staff_id: string | null;
+    department_id: string | null;
+  }>(
+    `SELECT id, email, display_name, app_role, staff_id, department_id
+       FROM users
+      WHERE id = $1 AND deleted_at IS NULL`,
+    [id],
+  );
   const row = rows[0];
   if (!row) {
     return NextResponse.json({ user: null });
-  }
-  if (row.app_role !== "admin" && row.app_role !== "employee") {
-    return NextResponse.json({ error: "不正なアカウント役割" }, { status: 500 });
   }
   return NextResponse.json({
     user: {
@@ -31,7 +34,8 @@ export async function GET(request: NextRequest) {
       email: row.email,
       displayName: row.display_name,
       role: row.app_role,
-      staffId: row.staff_profile_id,
+      staffId: row.staff_id,
+      departmentId: row.department_id,
     },
   });
 }
