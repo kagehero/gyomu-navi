@@ -37,3 +37,29 @@ export async function apiPostEmpty(path: string): Promise<void> {
     throw new Error((err as { error?: string }).error || res.statusText);
   }
 }
+
+export async function apiPatch<T>(path: string, body: object): Promise<T> {
+  const res = await fetch(apiUrl(path), {
+    method: "PATCH",
+    headers: jsonHeaders,
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || res.statusText);
+  }
+  return res.json() as Promise<T>;
+}
+
+export async function apiDelete<T = { ok: true }>(path: string): Promise<T> {
+  const res = await fetch(apiUrl(path), {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || res.statusText);
+  }
+  return res.json() as Promise<T>;
+}

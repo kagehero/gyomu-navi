@@ -1,19 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  boardPosts,
-  notices,
-  getStaffName,
-  getSiteName,
-  sites,
-} from "@/lib/mockData";
 import { useAuth } from "@/features/auth/useAuth";
-import { isEmployeeUser, resolveStaffProfile, filterNoticesForEmployee, filterBoardForEmployee } from "@/lib/employeeScope";
+import { useMySites } from "@/features/attendance/api";
+import { useBoardPosts, useMarkNoticeRead, useNotices } from "@/features/notices/api";
 import {
   Bell,
   Pin,
@@ -22,74 +16,65 @@ import {
   Users,
   User,
   Building2,
+  Loader2,
 } from "lucide-react";
 
-const targetIcons = {
+const TARGET_ICONS = {
   all: Users,
   department: Building2,
   individual: User,
-};
+} as const;
+const TARGET_LABELS = { all: "全員", department: "部門", individual: "個人" } as const;
 
-const targetLabels = {
-  all: "全員",
-  department: "部門",
-  individual: "個人",
-};
+function errorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : "読み込みに失敗しました";
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("ja-JP", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Tokyo",
+  });
+}
 
 export default function NoticesPage() {
   const { user } = useAuth();
-  const staff = resolveStaffProfile(user);
-  const employee = isEmployeeUser(user) && staff;
-  const missingProfile = isEmployeeUser(user) && !staff;
+  const isEmployee = user?.role === "employee";
 
-  const [selectedSite, setSelectedSite] = useState<string>(() => {
-    if (staff?.siteIds[0]) return staff.siteIds[0]!;
-    return sites[0]!.id;
-  });
+  const noticesQ = useNotices();
+  const sitesQ = useMySites();
+  const markRead = useMarkNoticeRead();
 
-  const siteOptions = useMemo(() => {
-    if (employee && staff) {
-      return sites.filter((s) => staff.siteIds.includes(s.id));
-    }
-    return sites;
-  }, [employee, staff]);
+  const sites = sitesQ.data?.items ?? [];
+  const [selectedSite, setSelectedSite] = useState<string>("");
 
-  const { visibleNotices, boardForSite } = useMemo(() => {
-    if (employee && staff) {
-      const vn = filterNoticesForEmployee(staff);
-      const atSite = filterBoardForEmployee(staff).filter((p) => p.siteId === selectedSite);
-      atSite.sort((a, b) => {
-        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-      return { visibleNotices: vn, boardForSite: atSite };
-    }
-    const filtered = boardPosts.filter((p) => p.siteId === selectedSite);
-    const sorted = [...filtered].sort((a, b) => {
+  useEffect(() => {
+    if (!selectedSite && sites[0]) setSelectedSite(sites[0].id);
+  }, [sites, selectedSite]);
+
+  const boardQ = useBoardPosts(selectedSite || undefined);
+
+  const notices = noticesQ.data?.items ?? [];
+  const boardPosts = boardQ.data?.items ?? [];
+
+  const sortedBoard = useMemo(() => {
+    return [...boardPosts].sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-    const nSorted = [...notices].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-    return { visibleNotices: nSorted, boardForSite: sorted };
-  }, [employee, staff, selectedSite]);
-
-  if (missingProfile) {
-    return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-        従業員プロフィールがアカウントに連携されていません。管理者に連絡してください。
-      </div>
-    );
-  }
+  }, [boardPosts]);
 
   return (
     <div className="space-y-4 sm:space-y-5">
       <div>
         <h1 className="text-xl font-bold tracking-tight sm:text-2xl">連絡・掲示板</h1>
         <p className="text-sm text-muted-foreground -mt-0.5">
-          {employee
-            ? "あなたの子会社・配属現場の連絡（日付順）"
+          {isEmployee
+            ? "あなた宛 / 自部門 / 全体 の連絡と、配属現場の掲示"
             : "業務連絡・現場別掲示板"}
         </p>
       </div>
@@ -107,42 +92,68 @@ export default function NoticesPage() {
         </TabsList>
 
         <TabsContent value="notices" className="mt-3 space-y-3 sm:mt-4">
-          {visibleNotices.map((n) => {
-            const TargetIcon = targetIcons[n.targetType];
-            const readRate = Math.round((n.readCount / n.totalTarget) * 100);
+          {noticesQ.isLoading && (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {noticesQ.isError && (
+            <p className="text-center text-sm text-destructive">
+              {errorMessage(noticesQ.error)}
+            </p>
+          )}
+          {notices.map((n) => {
+            const TargetIcon = TARGET_ICONS[n.target_type];
+            const readRate =
+              n.total_target > 0 ? Math.round((n.read_count / n.total_target) * 100) : 0;
             return (
-              <Card key={n.id} className="animate-fade-in transition-shadow hover:shadow-md">
+              <Card
+                key={n.id}
+                className={`animate-fade-in transition-shadow hover:shadow-md ${
+                  !n.is_read ? "border-primary/30 bg-primary/[0.02]" : ""
+                }`}
+              >
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="shrink-0 gap-1 text-[10px]">
                           <TargetIcon className="h-3 w-3" />
-                          {targetLabels[n.targetType]}
+                          {TARGET_LABELS[n.target_type]}
                         </Badge>
-                        {n.clientId && (
+                        {n.target_department_name && (
                           <Badge variant="secondary" className="text-[9px]">
-                            子会社指定
+                            {n.target_department_name}
                           </Badge>
                         )}
-                        <time
-                          className="text-[10px] text-muted-foreground"
-                          dateTime={n.createdAt}
-                        >
-                          {new Date(n.createdAt).toLocaleString("ja-JP", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        {n.client_name && (
+                          <Badge variant="secondary" className="text-[9px]">
+                            {n.client_name}
+                          </Badge>
+                        )}
+                        {!n.is_read && (
+                          <Badge className="text-[9px]">未読</Badge>
+                        )}
+                        <time className="text-[10px] text-muted-foreground" dateTime={n.created_at}>
+                          {formatDateTime(n.created_at)}
                         </time>
                       </div>
                       <h3 className="mb-1 text-sm font-medium leading-snug">{n.title}</h3>
                       <p className="line-clamp-3 text-xs text-muted-foreground">{n.body}</p>
                       <p className="mt-2 text-[10px] text-muted-foreground">
-                        発信者: {getStaffName(n.fromStaffId)}
+                        発信者: {n.from_display_name}
                       </p>
+                      {!n.is_read && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="mt-2 h-7 text-xs"
+                          onClick={() => markRead.mutate(n.id)}
+                          disabled={markRead.isPending}
+                        >
+                          既読にする
+                        </Button>
+                      )}
                     </div>
                     <div className="shrink-0 text-center">
                       <div className="flex items-center gap-1 text-xs">
@@ -154,7 +165,7 @@ export default function NoticesPage() {
                         <span className="font-medium">{readRate}%</span>
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        {n.readCount}/{n.totalTarget}
+                        {n.read_count}/{n.total_target}
                       </p>
                     </div>
                   </div>
@@ -162,14 +173,14 @@ export default function NoticesPage() {
               </Card>
             );
           })}
-          {visibleNotices.length === 0 && (
+          {!noticesQ.isLoading && notices.length === 0 && (
             <p className="text-center text-sm text-muted-foreground">表示する連絡はありません</p>
           )}
         </TabsContent>
 
         <TabsContent value="board" className="mt-3 space-y-3 sm:mt-4">
           <div className="flex flex-wrap gap-2">
-            {siteOptions.map((site) => (
+            {sites.map((site) => (
               <Button
                 key={site.id}
                 variant={selectedSite === site.id ? "default" : "outline"}
@@ -182,14 +193,24 @@ export default function NoticesPage() {
             ))}
           </div>
 
-          {boardForSite.length === 0 ? (
+          {boardQ.isLoading && (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {boardQ.isError && (
+            <p className="text-center text-sm text-destructive">
+              {errorMessage(boardQ.error)}
+            </p>
+          )}
+          {!boardQ.isLoading && sortedBoard.length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center text-sm text-muted-foreground sm:py-12">
                 この現場の掲示はありません
               </CardContent>
             </Card>
           ) : (
-            boardForSite.map((post) => (
+            sortedBoard.map((post) => (
               <Card
                 key={post.id}
                 className={`animate-fade-in ${
@@ -203,30 +224,16 @@ export default function NoticesPage() {
                       <h3 className="text-sm font-medium leading-snug">{post.title}</h3>
                       <p className="mt-1 text-xs text-muted-foreground">{post.body}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-                        <span>{getSiteName(post.siteId)}</span>
+                        <span>{post.site_name}</span>
                         <span>·</span>
-                        <span>{getStaffName(post.authorId)}</span>
-                        <time dateTime={post.createdAt}>
-                          {new Date(post.createdAt).toLocaleString("ja-JP", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </time>
+                        <span>{post.author_display_name}</span>
+                        <time dateTime={post.created_at}>{formatDateTime(post.created_at)}</time>
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))
-          )}
-
-          {employee && staff && siteOptions.length > 0 && (
-            <p className="text-center text-[10px] text-muted-foreground">
-              掲示は配属現場 {staff.siteIds.length} 箇所のうち、選択中の現場の投稿を表示しています
-            </p>
           )}
         </TabsContent>
       </Tabs>

@@ -11,7 +11,7 @@ import {
   notices,
   sites,
   staffs,
-} from "../mockData";
+} from "./seed_data";
 import { getPool } from "./pool";
 
 /**

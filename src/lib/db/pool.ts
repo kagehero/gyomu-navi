@@ -4,7 +4,13 @@
  */
 import pg from "pg";
 
-const { Pool } = pg;
+const { Pool, types } = pg;
+
+/**
+ * Keep DATE (oid 1082) as a raw YYYY-MM-DD string. pg's default JS Date wrapper
+ * would round-trip the value through UTC and confuse JST-anchored work_date.
+ */
+types.setTypeParser(1082, (v: string) => v);
 
 let _pool: pg.Pool | null = null;
 

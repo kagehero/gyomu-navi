@@ -48,34 +48,40 @@ export function useDepartments() {
   });
 }
 
-export function useClients() {
+type Opts = { enabled?: boolean };
+
+export function useClients({ enabled = true }: Opts = {}) {
   return useQuery({
     queryKey: ["master", "clients"],
     queryFn: () => apiGet<{ items: ClientCompany[] }>("/api/master/clients"),
     staleTime: STALE,
+    enabled,
   });
 }
 
-export function useSites() {
+export function useSites({ enabled = true }: Opts = {}) {
   return useQuery({
     queryKey: ["master", "sites"],
     queryFn: () => apiGet<{ items: Site[] }>("/api/master/sites"),
     staleTime: STALE,
+    enabled,
   });
 }
 
-export function useBusinessTypes() {
+export function useBusinessTypes({ enabled = true }: Opts = {}) {
   return useQuery({
     queryKey: ["master", "business-types"],
     queryFn: () => apiGet<{ items: BusinessType[] }>("/api/master/business-types"),
     staleTime: STALE,
+    enabled,
   });
 }
 
-export function useStaffs() {
+export function useStaffs({ enabled = true }: Opts = {}) {
   return useQuery({
     queryKey: ["master", "staffs"],
     queryFn: () => apiGet<{ items: Staff[] }>("/api/master/staffs"),
     staleTime: STALE,
+    enabled,
   });
 }
