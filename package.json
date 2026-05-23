@@ -12,6 +12,8 @@
     "db:migrate": "tsx src/lib/db/migrate.ts",
     "db:seed": "tsx src/lib/db/seed.ts",
     "test": "vitest run",
+    "test:unit": "vitest --project unit run",
+    "test:integration": "vitest --project integration run",
     "test:watch": "vitest"
   },
   "dependencies": {
