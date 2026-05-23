@@ -54,6 +54,7 @@ export function AppSidebar() {
   const router = useRouter();
   const collapsed = state === "collapsed";
   const mainNav = dashboardOnly ? mainItems.filter((i) => i.url === "/") : mainItems;
+  const showAdminItems = user?.role === "admin" && !dashboardOnly;
 
   return (
     <Sidebar collapsible="icon">
@@ -97,7 +98,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!dashboardOnly && (
+        {showAdminItems && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">
               管理
