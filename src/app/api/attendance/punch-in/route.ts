@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
               s.longitude::float8 AS longitude,
               s.radius_m,
               EXISTS (
-                SELECT 1 FROM staff_site_assigns ssa
-                 WHERE ssa.site_id = s.id AND ssa.staff_id = $2
+                SELECT 1 FROM staff_client_assigns sca
+                 WHERE sca.client_id = s.client_id AND sca.staff_id = $2
               ) AS assigned
          FROM sites s
         WHERE s.id = $1 AND s.deleted_at IS NULL`,

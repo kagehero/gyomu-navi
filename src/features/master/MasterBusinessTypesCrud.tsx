@@ -25,23 +25,38 @@ import {
 import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  useBusinessLines,
   useBusinessTypes,
   useClients,
   useCreateBusinessType,
   useDeleteBusinessType,
+  useSites,
   useUpdateBusinessType,
   type BusinessType,
 } from "@/features/master/api";
 import { DeleteConfirmDialog } from "@/features/master/DeleteConfirmDialog";
 
+const NONE = "_none_";
+
 const schema = z.object({
   client_id: z.string().uuid("顧客を選んでください"),
   name: z.string().trim().min(1, "業務名を入力してください").max(100),
+  site_id: z.string(),
+  business_line_id: z.string(),
+  unit_price_excl: z.string(),
+  unit_price_incl: z.string(),
 });
 type FormValues = z.infer<typeof schema>;
 
 function errorMessage(e: unknown): string {
   return e instanceof Error ? e.message : "操作に失敗しました";
+}
+
+function parseOptionalPrice(v: string): number | null {
+  const t = v.trim();
+  if (!t) return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
 function BusinessTypeFormDialog({
@@ -54,22 +69,44 @@ function BusinessTypeFormDialog({
   initial: BusinessType | null;
 }) {
   const clientsQ = useClients();
+  const sitesQ = useSites();
+  const blQ = useBusinessLines();
   const createM = useCreateBusinessType();
   const updateM = useUpdateBusinessType();
   const isEdit = initial !== null;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    values: { client_id: initial?.client_id ?? "", name: initial?.name ?? "" },
+    values: {
+      client_id: initial?.client_id ?? "",
+      name: initial?.name ?? "",
+      site_id: initial?.site_id ?? NONE,
+      business_line_id: initial?.business_line_id ?? NONE,
+      unit_price_excl:
+        initial?.unit_price_excl != null ? String(initial.unit_price_excl) : "",
+      unit_price_incl:
+        initial?.unit_price_incl != null ? String(initial.unit_price_incl) : "",
+    },
   });
 
+  const clientId = form.watch("client_id");
+  const clientSites = (sitesQ.data?.items ?? []).filter((s) => s.client_id === clientId);
+
   const submit = form.handleSubmit(async (v) => {
+    const payload = {
+      client_id: v.client_id,
+      name: v.name,
+      site_id: v.site_id === NONE ? null : v.site_id,
+      business_line_id: v.business_line_id === NONE ? null : v.business_line_id,
+      unit_price_excl: parseOptionalPrice(v.unit_price_excl),
+      unit_price_incl: parseOptionalPrice(v.unit_price_incl),
+    };
     try {
       if (isEdit) {
-        await updateM.mutateAsync({ id: initial!.id, ...v });
+        await updateM.mutateAsync({ id: initial!.id, ...payload });
         toast.success("業務内容を更新しました");
       } else {
-        await createM.mutateAsync(v);
+        await createM.mutateAsync(payload);
         toast.success("業務内容を作成しました");
       }
       onOpenChange(false);
@@ -80,10 +117,11 @@ function BusinessTypeFormDialog({
 
   const pending = createM.isPending || updateM.isPending;
   const clients = clientsQ.data?.items ?? [];
+  const businessLines = blQ.data?.items ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEdit ? "業務内容を編集" : "業務内容を新規作成"}</DialogTitle>
         </DialogHeader>
@@ -92,7 +130,10 @@ function BusinessTypeFormDialog({
             <Label className="text-xs">顧客</Label>
             <Select
               value={form.watch("client_id")}
-              onValueChange={(v) => form.setValue("client_id", v, { shouldValidate: true })}
+              onValueChange={(v) => {
+                form.setValue("client_id", v, { shouldValidate: true });
+                form.setValue("site_id", NONE);
+              }}
             >
               <SelectTrigger className="h-10">
                 <SelectValue placeholder="顧客を選択" />
@@ -105,10 +146,49 @@ function BusinessTypeFormDialog({
                 ))}
               </SelectContent>
             </Select>
-            {form.formState.errors.client_id && (
-              <p className="text-xs text-destructive">{form.formState.errors.client_id.message}</p>
-            )}
           </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">拠点（任意）</Label>
+            <Select
+              value={form.watch("site_id")}
+              onValueChange={(v) => form.setValue("site_id", v)}
+              disabled={!clientId}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="指定なし" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>指定なし</SelectItem>
+                {clientSites.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">報告部門（任意）</Label>
+            <Select
+              value={form.watch("business_line_id")}
+              onValueChange={(v) => form.setValue("business_line_id", v)}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="指定なし" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>指定なし</SelectItem>
+                {businessLines.map((bl) => (
+                  <SelectItem key={bl.id} value={bl.id}>
+                    {bl.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">業務名</Label>
             <Input className="h-10" {...form.register("name")} />
@@ -116,6 +196,18 @@ function BusinessTypeFormDialog({
               <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
             )}
           </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">単価（税抜）</Label>
+              <Input type="number" step="0.01" className="h-10" {...form.register("unit_price_excl")} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">単価（税込）</Label>
+              <Input type="number" step="0.01" className="h-10" {...form.register("unit_price_incl")} />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               キャンセル
@@ -179,57 +271,69 @@ export default function MasterBusinessTypesCrud() {
         </Dialog>
       </CardHeader>
       <CardContent className="p-0">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>業務名</th>
-              <th>顧客</th>
-              <th className="w-24 text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listQ.isLoading && (
+        <div className="overflow-x-auto">
+          <table className="data-table">
+            <thead>
               <tr>
-                <td colSpan={3} className="py-6 text-center text-muted-foreground">
-                  <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                </td>
+                <th>業務名</th>
+                <th>顧客</th>
+                <th>拠点</th>
+                <th>報告部門</th>
+                <th className="text-right">単価(税込)</th>
+                <th className="w-24 text-right">操作</th>
               </tr>
-            )}
-            {listQ.isError && (
-              <tr>
-                <td colSpan={3} className="py-6 text-center text-sm text-destructive">
-                  {errorMessage(listQ.error)}
-                </td>
-              </tr>
-            )}
-            {items.map((b) => (
-              <tr key={b.id} className="hover:bg-muted/30">
-                <td className="font-medium text-sm">{b.name}</td>
-                <td className="text-sm">{b.client_name}</td>
-                <td className="text-right">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(b)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => setDeleting(b)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-            {!listQ.isLoading && items.length === 0 && (
-              <tr>
-                <td colSpan={3} className="py-6 text-center text-muted-foreground">
-                  業務内容がありません
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {listQ.isLoading && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-muted-foreground">
+                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                  </td>
+                </tr>
+              )}
+              {listQ.isError && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-sm text-destructive">
+                    {errorMessage(listQ.error)}
+                  </td>
+                </tr>
+              )}
+              {items.map((b) => (
+                <tr key={b.id} className="hover:bg-muted/30">
+                  <td className="font-medium text-sm">{b.name}</td>
+                  <td className="text-sm">{b.client_name}</td>
+                  <td className="text-sm text-muted-foreground">{b.site_name ?? "—"}</td>
+                  <td className="text-sm text-muted-foreground">{b.business_line_name ?? "—"}</td>
+                  <td className="text-right text-sm">
+                    {b.unit_price_incl != null
+                      ? `¥${Math.round(b.unit_price_incl).toLocaleString()}`
+                      : "—"}
+                  </td>
+                  <td className="text-right">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(b)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => setDeleting(b)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+              {!listQ.isLoading && items.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-muted-foreground">
+                    業務内容がありません
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </CardContent>
 
       <DeleteConfirmDialog

@@ -33,12 +33,12 @@ describe("/api/attendance/punch-in", () => {
     expect(res.status).toBe(403);
   });
 
-  it("rejects punch-in to a site the employee isn't assigned to (siteBeta)", async () => {
+  it("rejects punch-in to a site under an unassigned client (siteGamma)", async () => {
     const res = await POST(
       postAs(employee, PUNCH_IN_URL, {
-        site_id: fx.ids.siteBeta,
-        latitude: 35.658,
-        longitude: 139.7016,
+        site_id: fx.ids.siteGamma,
+        latitude: 35.67,
+        longitude: 139.71,
       }),
     );
     expect(res.status).toBe(403);

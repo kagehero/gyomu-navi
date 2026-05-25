@@ -10,6 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "tsx src/lib/db/migrate.ts",
+    "db:build-catalog": "tsx src/lib/db/build_sales_catalog.ts",
+    "db:import-sales": "tsx src/lib/db/import_sales_catalog.ts",
     "db:seed": "tsx src/lib/db/seed.ts",
     "test": "vitest run",
     "test:unit": "vitest --project unit run",
@@ -97,6 +99,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "xlsx": "^0.18.5"
   }
 }

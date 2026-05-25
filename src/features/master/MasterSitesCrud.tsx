@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -36,10 +37,11 @@ import { DeleteConfirmDialog } from "@/features/master/DeleteConfirmDialog";
 
 const schema = z.object({
   client_id: z.string().uuid("顧客を選んでください"),
-  name: z.string().trim().min(1, "現場名を入力してください").max(255),
+  name: z.string().trim().min(1, "拠点名を入力してください").max(255),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
   radius_m: z.coerce.number().int().positive().max(100_000),
+  is_billing_branch: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -69,6 +71,7 @@ function SiteFormDialog({
       latitude: initial?.latitude ?? 35.6896,
       longitude: initial?.longitude ?? 139.6917,
       radius_m: initial?.radius_m ?? 100,
+      is_billing_branch: initial?.is_billing_branch ?? true,
     },
   });
 
@@ -76,10 +79,10 @@ function SiteFormDialog({
     try {
       if (isEdit) {
         await updateM.mutateAsync({ id: initial!.id, ...v });
-        toast.success("現場を更新しました");
+        toast.success("拠点を更新しました");
       } else {
         await createM.mutateAsync(v);
-        toast.success("現場を作成しました");
+        toast.success("拠点を作成しました");
       }
       onOpenChange(false);
     } catch (e) {
@@ -94,7 +97,7 @@ function SiteFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "現場を編集" : "現場を新規作成"}</DialogTitle>
+          <DialogTitle>{isEdit ? "拠点を編集" : "拠点を新規作成"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-3 py-2">
           <div className="space-y-1.5">
@@ -122,12 +125,20 @@ function SiteFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs">現場名</Label>
+            <Label className="text-xs">拠点名</Label>
             <Input className="h-10" {...form.register("name")} />
             {form.formState.errors.name && (
               <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
             )}
           </div>
+
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <Checkbox
+              checked={form.watch("is_billing_branch")}
+              onCheckedChange={(v) => form.setValue("is_billing_branch", v === true)}
+            />
+            売上報告用の拠点（支店）
+          </label>
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
@@ -138,11 +149,6 @@ function SiteFormDialog({
                 className="h-10"
                 {...form.register("latitude")}
               />
-              {form.formState.errors.latitude && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.latitude.message}
-                </p>
-              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">経度</Label>
@@ -152,22 +158,12 @@ function SiteFormDialog({
                 className="h-10"
                 {...form.register("longitude")}
               />
-              {form.formState.errors.longitude && (
-                <p className="text-xs text-destructive">
-                  {form.formState.errors.longitude.message}
-                </p>
-              )}
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label className="text-xs">判定半径 (m)</Label>
             <Input type="number" className="h-10" {...form.register("radius_m")} />
-            {form.formState.errors.radius_m && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.radius_m.message}
-              </p>
-            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
@@ -205,7 +201,7 @@ export default function MasterSitesCrud() {
     if (!deleting) return;
     try {
       await deleteM.mutateAsync(deleting.id);
-      toast.success("現場を削除しました");
+      toast.success("拠点を削除しました");
       setDeleting(null);
     } catch (e) {
       toast.error(errorMessage(e));
@@ -217,7 +213,7 @@ export default function MasterSitesCrud() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">現場拠点一覧 ({items.length}件)</CardTitle>
+        <CardTitle className="text-sm font-medium">拠点一覧 ({items.length}件)</CardTitle>
         <Dialog open={formOpen} onOpenChange={setFormOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="h-8" onClick={openCreate}>
@@ -233,8 +229,9 @@ export default function MasterSitesCrud() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>現場名</th>
+                <th>拠点名</th>
                 <th>顧客</th>
+                <th>報告用</th>
                 <th className="text-right">判定半径</th>
                 <th className="w-24 text-right">操作</th>
               </tr>
@@ -242,14 +239,14 @@ export default function MasterSitesCrud() {
             <tbody>
               {listQ.isLoading && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-muted-foreground">
+                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   </td>
                 </tr>
               )}
               {listQ.isError && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-sm text-destructive">
+                  <td colSpan={5} className="py-6 text-center text-sm text-destructive">
                     {errorMessage(listQ.error)}
                   </td>
                 </tr>
@@ -258,6 +255,7 @@ export default function MasterSitesCrud() {
                 <tr key={s.id} className="hover:bg-muted/30">
                   <td className="font-medium text-sm">{s.name}</td>
                   <td className="text-sm">{s.client_name}</td>
+                  <td className="text-sm">{s.is_billing_branch ? "はい" : "いいえ"}</td>
                   <td className="text-right text-sm">{s.radius_m}m</td>
                   <td className="text-right">
                     <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(s)}>
@@ -276,8 +274,8 @@ export default function MasterSitesCrud() {
               ))}
               {!listQ.isLoading && items.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-muted-foreground">
-                    現場がありません
+                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                    拠点がありません
                   </td>
                 </tr>
               )}
@@ -289,8 +287,8 @@ export default function MasterSitesCrud() {
       <DeleteConfirmDialog
         open={deleting !== null}
         onOpenChange={(v) => !v && setDeleting(null)}
-        title={`現場「${deleting?.name ?? ""}」を削除しますか？`}
-        description="この現場を参照している勤怠・報告・掲示がある場合は削除できません。"
+        title={`拠点「${deleting?.name ?? ""}」を削除しますか？`}
+        description="この拠点を参照している勤怠・報告がある場合は削除できません。"
         pending={deleteM.isPending}
         onConfirm={confirmDelete}
       />

@@ -1,12 +1,13 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Building2, MapPin, Briefcase, Boxes } from "lucide-react";
+import { Users, Building2, MapPin, Briefcase, Boxes, Layers } from "lucide-react";
 import MasterStaffsCrud from "@/features/master/MasterStaffsCrud";
 import MasterClientsCrud from "@/features/master/MasterClientsCrud";
 import MasterSitesCrud from "@/features/master/MasterSitesCrud";
 import MasterBusinessTypesCrud from "@/features/master/MasterBusinessTypesCrud";
 import MasterDepartmentsCrud from "@/features/master/MasterDepartmentsCrud";
+import MasterBusinessLinesCrud from "@/features/master/MasterBusinessLinesCrud";
 
 export default function MasterPage() {
   return (
@@ -24,7 +25,11 @@ export default function MasterPage() {
           </TabsTrigger>
           <TabsTrigger value="departments" className="gap-1.5">
             <Boxes className="h-3.5 w-3.5" />
-            部門
+            社内部門
+          </TabsTrigger>
+          <TabsTrigger value="business-lines" className="gap-1.5">
+            <Layers className="h-3.5 w-3.5" />
+            報告部門
           </TabsTrigger>
           <TabsTrigger value="clients" className="gap-1.5">
             <Building2 className="h-3.5 w-3.5" />
@@ -32,7 +37,7 @@ export default function MasterPage() {
           </TabsTrigger>
           <TabsTrigger value="sites" className="gap-1.5">
             <MapPin className="h-3.5 w-3.5" />
-            現場
+            拠点
           </TabsTrigger>
           <TabsTrigger value="business" className="gap-1.5">
             <Briefcase className="h-3.5 w-3.5" />
@@ -45,6 +50,9 @@ export default function MasterPage() {
         </TabsContent>
         <TabsContent value="departments" className="mt-4">
           <MasterDepartmentsCrud />
+        </TabsContent>
+        <TabsContent value="business-lines" className="mt-4">
+          <MasterBusinessLinesCrud />
         </TabsContent>
         <TabsContent value="clients" className="mt-4">
           <MasterClientsCrud />

@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { normalizeEmail } from "@/lib/auth/credentials";
 import { getPool } from "@/lib/db/pool";
 import { getCookieName, getCookieOptions, signUserToken } from "@/lib/auth/tokens";
 
@@ -11,9 +12,6 @@ const bodySchema = z.object({
   password: z.string().min(1, "パスワードを入力してください"),
 });
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
 
 export async function POST(request: NextRequest) {
   if (!process.env.DATABASE_URL?.trim() || !process.env.JWT_SECRET?.trim()) {
@@ -55,14 +53,22 @@ export async function POST(request: NextRequest) {
       app_role: "admin" | "manager" | "employee";
       staff_id: string | null;
       department_id: string | null;
+      staff_deleted: boolean | null;
+      login_approved_at: string | null;
     }>(
-      `SELECT id, email, password_hash, display_name, app_role, staff_id, department_id
-         FROM users
-        WHERE email = $1 AND deleted_at IS NULL`,
+      `SELECT u.id, u.email, u.password_hash, u.display_name, u.app_role,
+              u.staff_id, u.department_id, u.login_approved_at,
+              (st.deleted_at IS NOT NULL) AS staff_deleted
+         FROM users u
+         LEFT JOIN staffs st ON st.id = u.staff_id
+        WHERE u.email = $1 AND u.deleted_at IS NULL`,
       [norm],
     );
     const user = rows[0];
-    if (!user) {
+    if (
+      !user ||
+      (user.app_role === "employee" && (!user.staff_id || user.staff_deleted))
+    ) {
       return NextResponse.json(
         { error: "メールアドレスまたはパスワードが違います" },
         { status: 401 },
@@ -73,6 +79,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "メールアドレスまたはパスワードが違います" },
         { status: 401 },
+      );
+    }
+    if (user.app_role === "employee" && !user.login_approved_at) {
+      return NextResponse.json(
+        {
+          error: "管理者による承認待ちです。承認後にログインできます。",
+          code: "pending_approval",
+        },
+        { status: 403 },
       );
     }
     const token = signUserToken({ id: user.id, email: user.email });

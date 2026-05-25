@@ -17,28 +17,51 @@ type ReportRow = {
   client_name: string;
   business_type_id: string;
   business_type_name: string;
+  business_line_name: string | null;
   count: number;
   image_url: string | null;
   memo: string | null;
+  session_memo: string | null;
+  unit_price_excl: number | null;
+  unit_price_incl: number | null;
+  line_amount_excl: number | null;
+  line_amount_incl: number | null;
   reported_at: Date;
   created_at: Date;
   updated_at: Date;
 };
 
-const SELECT_REPORT = `
+function selectReport(userIsAdmin: boolean) {
+  const priceCols = userIsAdmin
+    ? `, bt.unit_price_excl::float8 AS unit_price_excl
+       , bt.unit_price_incl::float8 AS unit_price_incl
+       , (r.count * bt.unit_price_excl)::float8 AS line_amount_excl
+       , (r.count * bt.unit_price_incl)::float8 AS line_amount_incl`
+    : `, NULL::float8 AS unit_price_excl
+       , NULL::float8 AS unit_price_incl
+       , NULL::float8 AS line_amount_excl
+       , NULL::float8 AS line_amount_incl`;
+
+  return `
   SELECT r.id,
          r.staff_id, s.name AS staff_name,
          r.site_id,  st.name AS site_name,
          r.client_id, c.name  AS client_name,
          r.business_type_id, bt.name AS business_type_name,
+         bl.name AS business_line_name,
          r.count, r.image_url, r.memo,
+         rs.memo AS session_memo
+         ${priceCols},
          r.reported_at, r.created_at, r.updated_at
     FROM business_reports r
     JOIN staffs           s  ON s.id  = r.staff_id
     JOIN sites            st ON st.id = r.site_id
     JOIN client_companies c  ON c.id  = r.client_id
     JOIN business_types   bt ON bt.id = r.business_type_id
+    LEFT JOIN report_sessions rs ON rs.id = r.session_id
+    LEFT JOIN business_lines bl ON bl.id = rs.business_line_id OR bl.id = bt.business_line_id
 `;
+}
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 形式で指定してください");
 
@@ -99,7 +122,7 @@ export async function GET(request: NextRequest) {
       .join(" AND ");
 
     const { rows } = await getPool().query<ReportRow>(
-      `${SELECT_REPORT}
+      `${selectReport(user.role === "admin")}
         ${where ? "WHERE " + where : ""}
         ORDER BY r.reported_at DESC
         LIMIT 500`,
@@ -164,8 +187,8 @@ export async function POST(request: NextRequest) {
       `SELECT s.client_id,
               CASE WHEN $2::uuid IS NULL THEN true
                    ELSE EXISTS (
-                     SELECT 1 FROM staff_site_assigns ssa
-                      WHERE ssa.site_id = s.id AND ssa.staff_id = $2
+                     SELECT 1 FROM staff_client_assigns sca
+                      WHERE sca.client_id = s.client_id AND sca.staff_id = $2
                    )
               END AS assigned
          FROM sites s
@@ -210,7 +233,7 @@ export async function POST(request: NextRequest) {
       ],
     );
     const { rows } = await pool.query<ReportRow>(
-      `${SELECT_REPORT} WHERE r.id = $1`,
+      `${selectReport(user.role === "admin")} WHERE r.id = $1`,
       [insertedRows[0]!.id],
     );
     return NextResponse.json({ item: rows[0] }, { status: 201 });

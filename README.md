@@ -51,15 +51,23 @@ Internal operations **navigation UI** for day-to-day workplace tasks. A **[Next.
 
    ```bash
    npm run db:migrate
+   npm run db:build-catalog   # Regenerate catalog.json from public/社内システム売上報告階層.xlsx
+   npm run db:import-sales   # Excel-derived master (clients, tasks, prices, vehicle lists)
    npm run db:seed
    ```
 
    | Role | Email | UI |
    |------|--------|-----|
    | 管理者 (admin) | `admin@example.com` | Desktop layout, master + settings |
-   | 従業員 (employee) | `employee@example.com` | Mobile layout, scoped data (master/settings blocked) |
+   | マネージャ (manager) | `manager@example.com` | Department-scoped views |
 
-   Default password (change in production): `changeme123`.
+   Default password for admin/manager (change in production): `changeme123`.
+
+   **従業員ログイン:** 共有デモアカウントはありません。
+   - **本人登録:** `/register` で、管理者が登録したスタッフ名を選びメール・パスワードを設定
+   - **管理者代行:** マスタ管理 → スタッフ でログイン情報を直接設定することも可能
+
+   従業員登録を無効にする場合: `ALLOW_EMPLOYEE_REGISTER=false`
 
 4. `JWT_SECRET` must be a long random string in production. Optional: `ALLOW_REGISTER=true` for `POST /api/auth/register` (keep off in production).
 
@@ -84,7 +92,9 @@ npm run dev
 | `npm run build` | Production build |
 | `npm run start` | Start production server (after `build`) |
 | `npm run db:migrate` | Run SQL in `src/lib/db/` on `DATABASE_URL` |
-| `npm run db:seed` | Insert default users |
+| `npm run db:build-catalog` | Parse Excel → `src/lib/db/sales/catalog.json` |
+| `npm run db:import-sales` | Import sales catalog from `catalog.json` into PostgreSQL |
+| `npm run db:seed` | Insert demo users + staff assignments (after import-sales) |
 | `npm run lint` | `next lint` (ESLint) |
 | `npm test` / `npm run test:watch` | Vitest |
 

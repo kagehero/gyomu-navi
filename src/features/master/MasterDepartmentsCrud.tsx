@@ -132,7 +132,7 @@ export default function MasterDepartmentsCrud() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">部門一覧 ({items.length}件)</CardTitle>
+        <CardTitle className="text-sm font-medium">社内部門一覧 ({items.length}件)</CardTitle>
         <Dialog open={formOpen} onOpenChange={setFormOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="h-8" onClick={openCreate}>

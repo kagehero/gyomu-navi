@@ -3,6 +3,12 @@ import type { NextRequest } from "next/server";
 import { DASHBOARD_ONLY_HIDDEN_PREFIXES, isDashboardOnlyRelease } from "@/lib/releaseMode";
 
 export function middleware(request: NextRequest) {
+  // Automated scanners send bogus Server Action POSTs (e.g. Next-Action: x).
+  // This app uses Route Handlers only — reject early to avoid Next.js error noise.
+  if (request.method === "POST" && request.headers.has("next-action")) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   if (!isDashboardOnlyRelease()) {
     return NextResponse.next();
   }
@@ -17,10 +23,13 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/reports/:path*",
     "/attendance/:path*",
     "/notices/:path*",
     "/master/:path*",
     "/settings/:path*",
+    "/login",
+    "/register",
   ],
 };

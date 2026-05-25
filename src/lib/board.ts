@@ -5,10 +5,8 @@ import type { AuthedUser } from "@/lib/auth/guards";
  * is allowed to interact with (read posts / submit posts).
  *
  *   admin    : all live sites
- *   manager  : sites where some staff in the manager's department is assigned
- *   employee : sites the employee is assigned to
- *
- * Returned as `AND <site_id_col> IN (...)` so the caller can append it.
+ *   manager  : sites under clients assigned to staff in the manager's department
+ *   employee : all sites under assigned clients
  */
 export function visibleSitesClause(
   user: AuthedUser,
@@ -21,19 +19,24 @@ export function visibleSitesClause(
   if (user.role === "employee") {
     return {
       sql: ` AND ${siteIdColumn} IN (
-        SELECT site_id FROM staff_site_assigns WHERE staff_id = $${paramOffset + 1}
+        SELECT s.id
+          FROM sites s
+          JOIN staff_client_assigns sca ON sca.client_id = s.client_id
+         WHERE sca.staff_id = $${paramOffset + 1}
+           AND s.deleted_at IS NULL
       )`,
       params: [user.staffId],
     };
   }
-  // manager
   return {
     sql: ` AND ${siteIdColumn} IN (
-      SELECT ssa.site_id
-        FROM staff_site_assigns ssa
-        JOIN staffs st ON st.id = ssa.staff_id
+      SELECT s.id
+        FROM sites s
+        JOIN staff_client_assigns sca ON sca.client_id = s.client_id
+        JOIN staffs st ON st.id = sca.staff_id
        WHERE st.department_id = $${paramOffset + 1}
          AND st.deleted_at IS NULL
+         AND s.deleted_at IS NULL
     )`,
     params: [user.departmentId],
   };

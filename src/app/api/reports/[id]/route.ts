@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { del } from "@vercel/blob";
 import { requireUser } from "@/lib/auth/guards";
 import { canAccessStaff } from "@/lib/auth/scope";
 import { getPool } from "@/lib/db/pool";
 import { handleRouteError, parseJsonBody } from "@/lib/api/errors";
-import { jstWorkDate } from "@/lib/dates";
 
 export const runtime = "nodejs";
 
@@ -73,20 +73,10 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
       return NextResponse.json({ error: "対象が見つかりません" }, { status: 404 });
     }
 
-    // Authorisation:
-    //   admin                                  : always allowed
-    //   employee, own report, same JST day     : allowed (correction window)
-    //   anyone else                            : 403
+    // Authorisation: admin always; employee/manager own reports (any date).
     if (user.role !== "admin") {
       if (user.role !== "employee" || user.staffId !== meta.staff_id) {
         return NextResponse.json({ error: "編集権限がありません" }, { status: 403 });
-      }
-      const reportedDay = jstWorkDate(meta.reported_at);
-      if (reportedDay !== jstWorkDate()) {
-        return NextResponse.json(
-          { error: "本日以前の報告は編集できません。管理者にご連絡ください。" },
-          { status: 403 },
-        );
       }
     }
 
@@ -155,17 +145,44 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
 export async function DELETE(request: NextRequest, ctx: Ctx) {
   try {
     const user = await requireUser(request);
-    if (user.role !== "admin") {
-      return NextResponse.json({ error: "削除権限がありません" }, { status: 403 });
-    }
     const { id } = await ctx.params;
-    const { rowCount } = await getPool().query(
-      `DELETE FROM business_reports WHERE id = $1`,
-      [id],
-    );
-    if (rowCount === 0) {
+
+    const meta = await loadReport(id);
+    if (!meta) {
       return NextResponse.json({ error: "対象が見つかりません" }, { status: 404 });
     }
+
+    if (user.role === "employee") {
+      if (user.staffId !== meta.staff_id) {
+        return NextResponse.json({ error: "削除権限がありません" }, { status: 403 });
+      }
+    } else if (user.role !== "admin") {
+      return NextResponse.json({ error: "削除権限がありません" }, { status: 403 });
+    }
+
+    // Take the image_url before deleting so we can clean up the blob after.
+    // We don't make the blob delete fail the request — the row is the source
+    // of truth; an orphaned blob is an acceptable loss compared to a stuck
+    // report row.
+    const { rows } = await getPool().query<{ image_url: string | null }>(
+      `SELECT image_url FROM business_reports WHERE id = $1`,
+      [id],
+    );
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "対象が見つかりません" }, { status: 404 });
+    }
+    const imageUrl = rows[0]!.image_url;
+
+    await getPool().query(`DELETE FROM business_reports WHERE id = $1`, [id]);
+
+    if (imageUrl && process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        await del(imageUrl);
+      } catch (e) {
+        console.error("[reports.delete] blob del failed (orphan ok):", e);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     return handleRouteError(err);

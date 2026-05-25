@@ -35,16 +35,24 @@ export async function ensureMigrated(): Promise<void> {
 export async function truncateAll(): Promise<void> {
   await getPool().query(`
     TRUNCATE
+      vehicle_visits,
+      vehicles,
+      vehicle_lists,
       board_posts,
       notice_reads,
       notices,
       business_reports,
+      report_sessions,
       attendance_logs,
+      staff_client_assigns,
+      staff_business_line_assigns,
+      client_business_lines,
       staff_site_assigns,
       staffs,
       business_types,
       sites,
       client_companies,
+      business_lines,
       departments,
       users
     RESTART IDENTITY CASCADE

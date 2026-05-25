@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { Building2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const schema = z.object({
   email: z.string().min(1, "メールアドレスを入力してください").email("形式が正しくありません"),
@@ -25,6 +26,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams?.get("from") || "/";
+  const registered = searchParams?.get("registered") === "1";
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -84,6 +86,11 @@ export default function LoginPage() {
             <CardDescription>登録したメールアドレスとパスワードを入力してください</CardDescription>
           </CardHeader>
           <CardContent>
+            {registered && (
+              <p className="mb-4 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
+                登録を受け付けました。管理者の承認後、ログインできます。
+              </p>
+            )}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="email">メールアドレス</Label>
@@ -122,6 +129,12 @@ export default function LoginPage() {
                 )}
               </Button>
             </form>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              初めての方は{" "}
+              <Link href="/register" className="text-primary underline-offset-4 hover:underline">
+                従業員アカウント登録
+              </Link>
+            </p>
           </CardContent>
         </Card>
       </div>

@@ -7,3 +7,8 @@ export function jstWorkDate(at: Date = new Date()): string {
   const ms = at.getTime() + 9 * 3600_000;
   return new Date(ms).toISOString().slice(0, 10);
 }
+
+/** Alias used by reporting UI — today's calendar date in JST (YYYY-MM-DD). */
+export function todayJST(): string {
+  return jstWorkDate();
+}
