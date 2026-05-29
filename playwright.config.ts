@@ -1,9 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * E2E tests: add `*.spec.ts` under `e2e/`. The default `webServer` is disabled;
- * set `CI=1` or use `npx playwright test` with a running `npm run dev` if needed.
+ * E2E tests live under `e2e/`. By default we boot the Next dev server on
+ * 127.0.0.1:3100 ourselves so a fresh `npx playwright test` works without
+ * manual setup. Set `PLAYWRIGHT_BASE_URL` to skip the webServer and point at
+ * an already-running instance (e.g. staging, or a prod build you started).
  */
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+const useExternalServer = !!process.env.PLAYWRIGHT_BASE_URL;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -11,9 +16,19 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000",
+    baseURL,
     trace: "on-first-retry",
   },
+  webServer: useExternalServer
+    ? undefined
+    : {
+        command: "npm run dev -- --port 3100",
+        url: "http://127.0.0.1:3100/login",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+        stdout: "ignore",
+        stderr: "pipe",
+      },
   projects: [
     {
       name: "chromium",

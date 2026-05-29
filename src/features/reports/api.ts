@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { upload } from "@vercel/blob/client";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import type { InputUnit, LineMemoField, VehicleSelectMode } from "@/lib/reports/business-type-rules";
+import { compressReportImage } from "@/lib/reports/image-compression";
 
 export type BusinessReport = {
   id: string;
@@ -255,6 +257,7 @@ export type PatchReportInput = {
   count?: number;
   memo?: string | null;
   reported_at?: string;
+  image_url?: string | null;
 };
 
 export function usePatchReport(id: string) {
@@ -266,4 +269,26 @@ export function usePatchReport(id: string) {
       qc.invalidateQueries({ queryKey: ["reports"] });
     },
   });
+}
+
+/**
+ * Compress + upload an image for a report attachment.
+ *
+ * Returns the Vercel Blob URL on success, or throws. The upload-url issuer
+ * may 503 with `code: "blob_unconfigured"` — callers should catch that and
+ * skip image submission rather than failing the whole report.
+ */
+export async function uploadReportImage(file: File): Promise<{ url: string; finalBytes: number; originalBytes: number }> {
+  const compressed = await compressReportImage(file);
+  const path = `reports/${crypto.randomUUID()}-${compressed.file.name}`;
+  const blob = await upload(path, compressed.file, {
+    access: "private",
+    handleUploadUrl: "/api/reports/upload-url",
+    contentType: compressed.file.type,
+  });
+  return {
+    url: blob.url,
+    finalBytes: compressed.finalBytes,
+    originalBytes: compressed.originalBytes,
+  };
 }
