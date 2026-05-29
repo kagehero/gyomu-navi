@@ -370,7 +370,7 @@ src/lib/db/
 
 | Step | 内容 | 検証方法 |
 |---|---|---|
-| 2 | マイグレーション 003〜008 を作成、`migrate.ts` 改修、`seed.ts` 改修 | `docker compose down -v && up -d && npm run db:migrate && npm run db:seed` でクリーン投入できる |
+| 2 | マイグレーション 003〜008 を作成、`migrate.ts` 改修、`seed.ts` 改修 | Neon test branch を作り直し → `npm run db:migrate && npm run db:seed` でクリーン投入できる |
 | 3a | マスタ系 API (`/api/master/{staffs,sites,clients,departments,business-types}`) | curl + Vitest |
 | 3b | 勤怠 API (`/api/attendance/*`) | 同上 |
 | 3c | 業務報告 API (`/api/reports/*`) + Vercel Blob 連携 | アップロードは Phase 4 で詳細実装、URL 受け渡しまでを 3c |

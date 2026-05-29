@@ -26,7 +26,7 @@ Internal operations **navigation UI** for day-to-day workplace tasks. A **[Next.
 ## Prerequisites
 
 - **Node.js** 18+ (20 LTS recommended) and **npm** 9+
-- **Docker** (recommended) **or** a running **PostgreSQL 16+** instance
+- A **PostgreSQL 16+** database — [Neon](https://neon.tech/) (recommended) or any local Postgres instance
 - A **`.env`** file — copy from **`.env.example`**
 
 ## Database & environment
@@ -37,15 +37,11 @@ Internal operations **navigation UI** for day-to-day workplace tasks. A **[Next.
    cp .env.example .env
    ```
 
-2. Start PostgreSQL (Docker example):
+2. Point `DATABASE_URL` at a Postgres instance.
 
-   ```bash
-   docker compose up -d
-   ```
+   **[Neon](https://neon.tech/) (recommended):** Copy the connection string from the Neon console. The pool auto-enables TLS for `neon.tech` / `aiven` / `supabase` / `rds` hostnames and any URL with `sslmode=require` (see `src/lib/db/pool.ts`).
 
-   Default URL matches `.env.example`: `postgresql://gyomu:gyomu@localhost:5432/gyomu_navi`.
-
-   **Using [Neon](https://neon.tech/):** Copy the connection string from the Neon console into `DATABASE_URL`. The pool enables TLS for `neon.tech` and similar hosts (see `src/lib/db/pool.ts`). Run `db:migrate` and `db:seed` with that `DATABASE_URL`.
+   **Local Postgres:** Install Postgres 16+ (e.g. `brew install postgresql@16`), create a `gyomu_navi` database, and use a URL like `postgresql://gyomu:gyomu@localhost:5432/gyomu_navi`.
 
 3. Create tables and **seed users**:
 
