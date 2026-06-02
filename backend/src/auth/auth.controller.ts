@@ -3,7 +3,6 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  NotImplementedException,
   Post,
   Get,
   Res,
@@ -13,7 +12,7 @@ import { ConfigService } from "@nestjs/config";
 import type { CookieOptions, Response } from "express";
 import { AuthService } from "./auth.service";
 import { CurrentUser } from "./current-user.decorator";
-import { LoginDto, RegisterDto } from "./dto";
+import { LoginDto, RegisterDto, RegisterEmployeeDto } from "./dto";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import type { AuthedUser } from "./types";
 
@@ -25,9 +24,9 @@ export class AuthController {
   ) {}
 
   /**
-   * Cookie attributes shared by login and logout. Centralised so the unset
-   * call uses byte-identical options — browsers won't clear a cookie set
-   * with mismatched Path/Domain/Secure.
+   * Cookie attributes shared by login, register, and logout. Centralised so
+   * unset uses byte-identical options — browsers won't clear a cookie that
+   * was set with a different Path/Domain/Secure/SameSite combination.
    */
   private cookieOptions(): CookieOptions {
     const sameSite = (this.cs.get<string>("COOKIE_SAME_SITE") ?? "lax") as
@@ -43,21 +42,23 @@ export class AuthController {
     };
   }
 
+  private cookieName(): string {
+    return this.cs.get<string>("SESSION_COOKIE_NAME") ?? "gyomu_session";
+  }
+
   @Post("login")
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
     const user = await this.auth.validateCredentials(body.email, body.password);
     const token = this.auth.signSessionToken(user);
-    const cookieName = this.cs.get<string>("SESSION_COOKIE_NAME") ?? "gyomu_session";
-    res.cookie(cookieName, token, this.cookieOptions());
+    res.cookie(this.cookieName(), token, this.cookieOptions());
     return { user };
   }
 
   @Post("logout")
   @HttpCode(HttpStatus.OK)
   logout(@Res({ passthrough: true }) res: Response) {
-    const cookieName = this.cs.get<string>("SESSION_COOKIE_NAME") ?? "gyomu_session";
-    res.clearCookie(cookieName, this.cookieOptions());
+    res.clearCookie(this.cookieName(), this.cookieOptions());
     return { ok: true };
   }
 
@@ -73,16 +74,35 @@ export class AuthController {
   }
 
   /**
-   * TODO(phase-port): registration was Phase1's `/api/auth/register` and
-   * `/api/auth/register/employee`. Port both flows here when the master/me
-   * modules are ready — they depend on staffs / departments lookups that
-   * don't exist yet in this scaffold.
+   * Admin self-registration (`POST /api/auth/register`). Gated by
+   * ALLOW_REGISTER=true. On success the new user is auto-logged-in via the
+   * same httpOnly cookie the login endpoint sets.
    */
   @Post("register")
-  @HttpCode(HttpStatus.NOT_IMPLEMENTED)
-  register(@Body() _body: RegisterDto) {
-    throw new NotImplementedException(
-      "register flow will be ported alongside the master + me modules",
-    );
+  @HttpCode(HttpStatus.CREATED)
+  async register(
+    @Body() body: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.auth.registerAdmin(body);
+    const token = this.auth.signSessionToken(user);
+    res.cookie(this.cookieName(), token, this.cookieOptions());
+    return { user };
+  }
+
+  /**
+   * Employee self-registration (`POST /api/auth/register/employee`).
+   * Creates a staffs row + an unapproved users row in one transaction.
+   * Returns the same "管理者の承認待ち" message as Phase1 — does NOT
+   * auto-login (the user can't log in until an admin approves).
+   */
+  @Post("register/employee")
+  @HttpCode(HttpStatus.CREATED)
+  async registerEmployee(@Body() body: RegisterEmployeeDto) {
+    await this.auth.registerEmployee(body);
+    return {
+      message:
+        "登録を受け付けました。管理者が担当部署・顧客を設定して承認するまで、ログインはできません。",
+    };
   }
 }

@@ -6,7 +6,7 @@ import { MigrationInterface, QueryRunner } from "typeorm";
  * Concatenates and runs the Phase1 SQL migration set in order.
  *
  * This is the "lift-and-shift" bootstrap: we re-apply every migration from
- * `src/lib/db/migrations/00{1..8}_*.sql` (relative to the Phase1 monorepo
+ * `frontend/src/lib/db/migrations/00{1..8}_*.sql` (relative to the monorepo
  * root) as one transactional unit. After this runs, the RDS schema is
  * identical to what Phase1 had on Neon.
  *
@@ -15,14 +15,17 @@ import { MigrationInterface, QueryRunner } from "typeorm";
  */
 export class Bootstrap1700000000001 implements MigrationInterface {
   /**
-   * Path to the Phase1 monorepo migrations directory, relative to this file.
+   * Path to the Phase1 SQL migrations, lifted from `frontend/src/lib/db/migrations`.
    * Override via `PHASE1_MIGRATIONS_DIR` if the backend is deployed without
-   * the Phase1 sibling tree (e.g. a Docker image that ships only `backend/`).
+   * the sibling frontend tree (e.g. a Docker image that ships only `backend/`).
+   *
+   * Path is computed from this file's location:
+   *   backend/src/database/migrations/ → ../../../../frontend/src/lib/db/migrations
    */
   private get migrationsDir(): string {
     return (
       process.env.PHASE1_MIGRATIONS_DIR ??
-      join(__dirname, "..", "..", "..", "..", "src", "lib", "db", "migrations")
+      join(__dirname, "..", "..", "..", "..", "frontend", "src", "lib", "db", "migrations")
     );
   }
 

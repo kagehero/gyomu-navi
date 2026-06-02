@@ -8,7 +8,7 @@ loadEnv();
  * Standalone DataSource for the `npm run migration:*` scripts.
  *
  * Migration files are the raw SQL lifted verbatim from the Phase1 repo at
- * `../src/lib/db/migrations/*.sql`. We rewrap them as TypeORM migration
+ * `frontend/src/lib/db/migrations/*.sql`. We rewrap them as TypeORM migration
  * classes during the cutover so the migration tracking table works, but
  * the SQL itself is unchanged.
  */

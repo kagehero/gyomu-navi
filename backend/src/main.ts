@@ -1,15 +1,18 @@
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+  });
   const log = new Logger("bootstrap");
 
   // The SPA sits behind Nginx → we trust 1 hop for X-Forwarded-* / req.secure.
-  app.set?.("trust proxy", 1);
+  app.set("trust proxy", 1);
 
   app.use(helmet());
   app.use(cookieParser());
