@@ -1,4 +1,7 @@
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsInt,
   IsOptional,
   IsString,
@@ -27,4 +30,14 @@ export class PatchReportDto {
   @IsOptional() @ValidateIf((_, v) => v !== null)
   @IsString() @MaxLength(2000)
   image_url?: string | null;
+}
+
+/** Body for POST /api/reports/:id/images — attach uploaded object keys. */
+export class AddReportImagesDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  @MaxLength(2000, { each: true })
+  objectKeys!: string[];
 }

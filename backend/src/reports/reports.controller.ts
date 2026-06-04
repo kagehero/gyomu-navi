@@ -23,7 +23,7 @@ import type { AuthedUser } from "../auth/types";
 import { UploadService } from "../upload/upload.service";
 import { ReportsListQueryDto } from "./dto";
 import { ReportsService } from "./reports.service";
-import { PatchReportDto } from "./single-report.dto";
+import { AddReportImagesDto, PatchReportDto } from "./single-report.dto";
 
 @Controller("reports")
 @UseGuards(JwtAuthGuard)
@@ -92,23 +92,74 @@ export class ReportsController {
     @Res() res: Response,
   ) {
     const meta = await this.svc.loadImageMeta(user, id);
-    if (isFullUrl(meta.image_url)) {
-      res.redirect(HttpStatus.FOUND, meta.image_url);
+    await this.streamObject(meta.image_url, res);
+  }
+
+  // ----- multi-image endpoints -----
+
+  /** Attach uploaded object keys to a report. Body: `{ objectKeys: string[] }`. */
+  @Post(":id/images")
+  addImages(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() body: AddReportImagesDto,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.addImages(user, id, body.objectKeys);
+  }
+
+  /** List a report's images (metadata only). */
+  @Get(":id/images")
+  listImages(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.listImages(user, id);
+  }
+
+  /** Stream a single report image by its id. */
+  @Get(":id/images/:imageId")
+  async imageById(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("imageId", new ParseUUIDPipe()) imageId: string,
+    @CurrentUser() user: AuthedUser,
+    @Res() res: Response,
+  ) {
+    const meta = await this.svc.loadReportImageMeta(user, id, imageId);
+    await this.streamObject(meta.object_key, res);
+  }
+
+  /** Delete a single report image. */
+  @Delete(":id/images/:imageId")
+  async deleteImage(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Param("imageId", new ParseUUIDPipe()) imageId: string,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.deleteImage(user, id, imageId);
+  }
+
+  /**
+   * Resolve a stored object key to bytes for the `<img>` consumer:
+   * full URL → 302; local disk → stream; S3 → 302 to a presigned GET URL.
+   */
+  private async streamObject(objectKey: string, res: Response): Promise<void> {
+    if (isFullUrl(objectKey)) {
+      res.redirect(HttpStatus.FOUND, objectKey);
       return;
     }
 
     if (this.uploads.isLocalStorage()) {
-      const filePath = this.uploads.localFilePath(meta.image_url);
-      if (!filePath || !(await this.uploads.localFileExists(meta.image_url))) {
+      const filePath = this.uploads.localFilePath(objectKey);
+      if (!filePath || !(await this.uploads.localFileExists(objectKey))) {
         res.status(HttpStatus.NOT_FOUND).end();
         return;
       }
-      res.type(contentTypeFromKey(meta.image_url));
+      res.type(contentTypeFromKey(objectKey));
       createReadStream(filePath).pipe(res);
       return;
     }
 
-    const target = await this.uploads.presignGet(meta.image_url);
+    const target = await this.uploads.presignGet(objectKey);
     res.redirect(HttpStatus.FOUND, target);
   }
 }

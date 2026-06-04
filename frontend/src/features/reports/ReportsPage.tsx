@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -22,6 +22,8 @@ import { ReportSessionHistory } from "@/features/reports/ReportSessionHistory";
 import {
   ReportImageLightbox,
   useReportLightbox,
+  imageLightboxItem,
+  legacyLightboxItem,
 } from "@/features/reports/ReportImageLightbox";
 import { useClients, useStaffs } from "@/features/master/api";
 import { CsvExportMenu } from "@/features/analytics/CsvExportMenu";
@@ -39,6 +41,7 @@ import { todayJST } from "@/lib/dates";
 import {
   formatReportDateTime,
   reportDisplayTimestamp,
+  reportImageByIdSrc,
   reportImageSrc,
 } from "@/lib/reports/format";
 
@@ -86,20 +89,40 @@ export default function ReportsPage() {
     ? items.reduce((sum, r) => sum + (r.count ?? 0), 0)
     : 0;
 
-  // List of items with images for the lightbox (admin only).
+  // Flat list of every viewable image (admin lightbox). New multi-images
+  // (report_images) expand per-image; legacy rows fall back to image_url.
   const imageItems = useMemo(
     () =>
-      items
-        .filter((r) => !!r.image_url)
-        .map((r) => ({
-          id: r.id,
+      items.flatMap((r) => {
+        const meta = {
           client_name: r.client_name,
           staff_name: r.staff_name,
           reported_at: reportDisplayTimestamp(r),
-        })),
+        };
+        if (r.images && r.images.length > 0) {
+          return r.images.map((img) => imageLightboxItem(r.id, img.imageId, meta));
+        }
+        if (r.image_url) {
+          return [legacyLightboxItem({ id: r.id, ...meta })];
+        }
+        return [];
+      }),
     [items],
   );
   const lightbox = useReportLightbox();
+
+  // First viewable image key for a report (to open the lightbox at it).
+  const firstImageKey = useCallback(
+    (r: BusinessReport): string | null => {
+      if (r.images && r.images.length > 0) return r.images[0]!.imageId;
+      if (r.image_url) return r.id;
+      return null;
+    },
+    [],
+  );
+  // Total image count for a report (multi or legacy single).
+  const imageCountOf = (r: BusinessReport): number =>
+    r.images && r.images.length > 0 ? r.images.length : r.image_url ? 1 : 0;
 
   const hasActiveFilters =
     !isEmployee && (filterStaff !== "all" || filterClient !== "all");
@@ -247,7 +270,10 @@ export default function ReportsPage() {
                   showPrice={isAdmin}
                   canManage={canManageReports}
                   canEdit={isAdmin}
-                  onOpenImage={r.image_url ? () => lightbox.open(r.id) : undefined}
+                  onOpenImage={
+                    firstImageKey(r) ? () => lightbox.open(firstImageKey(r)!) : undefined
+                  }
+                  imageCount={imageCountOf(r)}
                 />
               ))}
             </div>
@@ -321,20 +347,29 @@ export default function ReportsPage() {
                     </td>
                     {imageColumn && (
                       <td className="text-center">
-                        {r.image_url ? (
+                        {firstImageKey(r) ? (
                           <button
                             type="button"
-                            className="inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border bg-muted transition-shadow hover:shadow-md"
-                            onClick={() => lightbox.open(r.id)}
-                            aria-label="画像を拡大表示"
+                            className="relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border bg-muted transition-shadow hover:shadow-md"
+                            onClick={() => lightbox.open(firstImageKey(r)!)}
+                            aria-label={`画像を拡大表示（${imageCountOf(r)}枚）`}
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element -- backend image proxy */}
                             <img
-                              src={reportImageSrc(r.id)}
+                              src={
+                                r.images && r.images.length > 0
+                                  ? reportImageByIdSrc(r.id, r.images[0]!.imageId)
+                                  : reportImageSrc(r.id)
+                              }
                               alt=""
                               className="h-full w-full object-cover"
                               loading="lazy"
                             />
+                            {imageCountOf(r) > 1 && (
+                              <span className="absolute bottom-0 right-0 rounded-tl bg-black/70 px-1 text-[10px] font-medium leading-tight text-white">
+                                +{imageCountOf(r) - 1}
+                              </span>
+                            )}
                           </button>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
@@ -454,6 +489,7 @@ function MobileReportCard({
   canManage,
   canEdit,
   onOpenImage,
+  imageCount = 0,
 }: {
   row: BusinessReport;
   showStaff: boolean;
@@ -461,6 +497,7 @@ function MobileReportCard({
   canManage: boolean;
   canEdit: boolean;
   onOpenImage?: () => void;
+  imageCount?: number;
 }) {
   return (
     <Card>
@@ -495,17 +532,26 @@ function MobileReportCard({
           {onOpenImage && (
             <button
               type="button"
-              className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted"
+              className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted"
               onClick={onOpenImage}
-              aria-label="画像を拡大表示"
+              aria-label={`画像を拡大表示（${imageCount}枚）`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- backend image proxy */}
               <img
-                src={reportImageSrc(row.id)}
+                src={
+                  row.images && row.images.length > 0
+                    ? reportImageByIdSrc(row.id, row.images[0]!.imageId)
+                    : reportImageSrc(row.id)
+                }
                 alt=""
                 className="h-full w-full object-cover"
                 loading="lazy"
               />
+              {imageCount > 1 && (
+                <span className="absolute bottom-0 right-0 rounded-tl bg-black/70 px-1 text-[10px] font-medium leading-tight text-white">
+                  +{imageCount - 1}
+                </span>
+              )}
             </button>
           )}
         </div>

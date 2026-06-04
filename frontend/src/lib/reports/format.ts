@@ -16,3 +16,8 @@ export function reportDisplayTimestamp(row: {
 export function reportImageSrc(reportId: string): string {
   return `/api/reports/${reportId}/image`;
 }
+
+/** URL for a specific report image (multi-image: report_images.id). */
+export function reportImageByIdSrc(reportId: string, imageId: string): string {
+  return `/api/reports/${reportId}/images/${imageId}`;
+}

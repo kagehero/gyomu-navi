@@ -41,10 +41,19 @@ export class ReportsService {
            r.count, r.image_url, r.memo,
            rs.memo AS session_memo,
            rs.submitted_at AS session_submitted_at,
-           rs.work_date::text AS work_date
+           rs.work_date::text AS work_date,
+           COALESCE(img.images, '[]'::json) AS images,
+           img.image_count
            ${priceCols},
            r.reported_at, r.created_at, r.updated_at
       FROM business_reports r
+      LEFT JOIN LATERAL (
+        SELECT json_agg(json_build_object('imageId', ri.id, 'sortOrder', ri.sort_order)
+                        ORDER BY ri.sort_order, ri.created_at) AS images,
+               COUNT(*)::int AS image_count
+          FROM report_images ri
+         WHERE ri.report_id = r.id
+      ) img ON TRUE
       JOIN staffs           s  ON s.id  = r.staff_id
       JOIN sites            st ON st.id = r.site_id
       JOIN client_companies c  ON c.id  = r.client_id
@@ -245,8 +254,10 @@ export class ReportsService {
   }
 
   /**
-   * Resolve the image-proxy access check. Throws 404 / 403 — on success
-   * returns a row whose `image_url` is guaranteed non-null.
+   * Resolve the single-image proxy access check (legacy `:id/image` route).
+   * Returns the legacy `image_url` when present; otherwise falls back to the
+   * first `report_images` row so views still showing one thumbnail keep
+   * working for multi-image reports. Throws 404 / 403.
    */
   async loadImageMeta(
     user: AuthedUser,
@@ -259,10 +270,119 @@ export class ReportsService {
       );
     const row = rows[0];
     if (!row) throw new NotFoundException("対象が見つかりません");
-    if (!row.image_url) throw new NotFoundException("画像がありません");
     if (!(await this.canAccessStaff(user, row.staff_id))) {
       throw new ForbiddenException("閲覧権限がありません");
     }
-    return { staff_id: row.staff_id, image_url: row.image_url };
+
+    let objectKey = row.image_url;
+    if (!objectKey) {
+      const imgs: Array<{ object_key: string }> = await this.ds.query(
+        `SELECT object_key FROM report_images
+          WHERE report_id = $1 ORDER BY sort_order, created_at LIMIT 1`,
+        [id],
+      );
+      objectKey = imgs[0]?.object_key ?? null;
+    }
+    if (!objectKey) throw new NotFoundException("画像がありません");
+    return { staff_id: row.staff_id, image_url: objectKey };
+  }
+
+  // ----- multi-image (report_images) -----
+
+  /** Max images allowed per report (顧客要望). */
+  static readonly MAX_IMAGES = 10;
+
+  /**
+   * Attach one or more uploaded object keys to a report. Enforces the
+   * per-report cap server-side. New images are appended after existing ones
+   * (sort_order continues from the current max). Returns the refreshed list.
+   */
+  async addImages(user: AuthedUser, reportId: string, objectKeys: string[]) {
+    const meta = await this.loadReportMeta(reportId);
+    if (!meta) throw new NotFoundException("対象が見つかりません");
+    if (user.role !== "admin") {
+      if (user.role !== "employee" || user.staffId !== meta.staff_id) {
+        throw new ForbiddenException("編集権限がありません");
+      }
+    }
+    if (!objectKeys.length) throw new BadRequestException("画像が指定されていません");
+
+    const existing: Array<{ n: number; max: number | null }> = await this.ds.query(
+      `SELECT COUNT(*)::int AS n, MAX(sort_order) AS max
+         FROM report_images WHERE report_id = $1`,
+      [reportId],
+    );
+    const current = existing[0]?.n ?? 0;
+    if (current + objectKeys.length > ReportsService.MAX_IMAGES) {
+      throw new BadRequestException(
+        `画像は1報告につき最大${ReportsService.MAX_IMAGES}枚です`,
+      );
+    }
+
+    let nextOrder = (existing[0]?.max ?? -1) + 1;
+    for (const key of objectKeys) {
+      await this.ds.query(
+        `INSERT INTO report_images (report_id, object_key, sort_order)
+         VALUES ($1, $2, $3)`,
+        [reportId, key, nextOrder++],
+      );
+    }
+    return this.listImages(user, reportId);
+  }
+
+  /** List image metadata for a report (access-checked). */
+  async listImages(user: AuthedUser, reportId: string) {
+    const meta = await this.loadReportMeta(reportId);
+    if (!meta) throw new NotFoundException("対象が見つかりません");
+    if (!(await this.canAccessStaff(user, meta.staff_id))) {
+      throw new ForbiddenException("閲覧権限がありません");
+    }
+    const rows: Array<{ imageId: string; sortOrder: number }> = await this.ds.query(
+      `SELECT id AS "imageId", sort_order AS "sortOrder"
+         FROM report_images WHERE report_id = $1
+        ORDER BY sort_order, created_at`,
+      [reportId],
+    );
+    return { items: rows };
+  }
+
+  /**
+   * Resolve a single report image's object_key for the streaming proxy.
+   * Throws 404 / 403; on success returns the object_key.
+   */
+  async loadReportImageMeta(
+    user: AuthedUser,
+    reportId: string,
+    imageId: string,
+  ): Promise<{ object_key: string }> {
+    const rows: Array<{ staff_id: string; object_key: string }> = await this.ds.query(
+      `SELECT r.staff_id, ri.object_key
+         FROM report_images ri
+         JOIN business_reports r ON r.id = ri.report_id
+        WHERE ri.id = $1 AND ri.report_id = $2`,
+      [imageId, reportId],
+    );
+    const row = rows[0];
+    if (!row) throw new NotFoundException("画像が見つかりません");
+    if (!(await this.canAccessStaff(user, row.staff_id))) {
+      throw new ForbiddenException("閲覧権限がありません");
+    }
+    return { object_key: row.object_key };
+  }
+
+  /** Delete a single report image (DB row only; storage object is left as-is). */
+  async deleteImage(user: AuthedUser, reportId: string, imageId: string) {
+    const meta = await this.loadReportMeta(reportId);
+    if (!meta) throw new NotFoundException("対象が見つかりません");
+    if (user.role !== "admin") {
+      if (user.role !== "employee" || user.staffId !== meta.staff_id) {
+        throw new ForbiddenException("削除権限がありません");
+      }
+    }
+    await this.ds.query(
+      `DELETE FROM report_images WHERE id = $1 AND report_id = $2`,
+      [imageId, reportId],
+    );
+    return { ok: true };
   }
 }
