@@ -16,13 +16,15 @@ import {
 import { Plus, Loader2, ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { todayJST } from "@/lib/dates";
-import { apiGet, apiPatch } from "@/lib/api";
+import { apiGet } from "@/lib/api";
 import {
-  uploadReportImage,
+  attachReportImages,
+  uploadReportImages,
   useCreateReportSession,
   useMyBusinessLines,
   useReportSession,
   useUpdateReportSession,
+  MAX_REPORT_IMAGES,
   type CustomerBlock,
   type ReportSession,
 } from "@/features/reports/api";
@@ -101,8 +103,8 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
   const [memo, setMemo] = useState("");
   const [blocks, setBlocks] = useState<CustomerBlockState[]>([newBlock()]);
   const [loaded, setLoaded] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imageUploading, setImageUploading] = useState(false);
   const [draftBanner, setDraftBanner] = useState<Draft | null>(null);
 
@@ -177,37 +179,54 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
     setMemo("");
     setBlocks([newBlock()]);
     setBusinessLineId("");
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
   }, [sessionId]);
 
-  // Manage object URL lifecycle for the preview.
+  // Manage object URL lifecycle for the previews.
   useEffect(() => {
-    if (!imageFile) {
-      setImagePreview(null);
+    if (imageFiles.length === 0) {
+      setImagePreviews([]);
       return;
     }
-    const url = URL.createObjectURL(imageFile);
-    setImagePreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [imageFile]);
+    const urls = imageFiles.map((f) => URL.createObjectURL(f));
+    setImagePreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [imageFiles]);
 
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
+    const picked = Array.from(e.target.files ?? []);
     e.target.value = ""; // allow re-selecting the same file
-    if (!f) return;
-    if (!/^image\//.test(f.type) && !/\.(heic|heif)$/i.test(f.name)) {
-      toast.error("画像ファイルを選択してください");
-      return;
-    }
-    if (f.size > 20 * 1024 * 1024) {
-      toast.error("20MB を超える画像はアップロードできません");
-      return;
-    }
-    setImageFile(f);
+    if (picked.length === 0) return;
+
+    const valid = picked.filter((f) => {
+      if (!/^image\//.test(f.type) && !/\.(heic|heif)$/i.test(f.name)) {
+        toast.error(`${f.name}: 画像ファイルを選択してください`);
+        return false;
+      }
+      if (f.size > 20 * 1024 * 1024) {
+        toast.error(`${f.name}: 20MB を超える画像はアップロードできません`);
+        return false;
+      }
+      return true;
+    });
+    if (valid.length === 0) return;
+
+    setImageFiles((prev) => {
+      const room = MAX_REPORT_IMAGES - prev.length;
+      if (room <= 0) {
+        toast.error(`画像は最大${MAX_REPORT_IMAGES}枚までです`);
+        return prev;
+      }
+      if (valid.length > room) {
+        toast.warning(`${MAX_REPORT_IMAGES}枚を超える分は追加されませんでした`);
+      }
+      return [...prev, ...valid.slice(0, room)];
+    });
   };
 
-  const clearImage = () => setImageFile(null);
+  const removeImageAt = (idx: number) =>
+    setImageFiles((prev) => prev.filter((_, i) => i !== idx));
 
   const addCustomerBlock = () => setBlocks((b) => [...b, newBlock()]);
   const updateBlock = useCallback((idx: number, block: CustomerBlockState) => {
@@ -236,10 +255,9 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
   }, [blocks]);
 
   const attachImageToSession = async (sessionDetailId: string): Promise<void> => {
-    if (!imageFile) return;
+    if (imageFiles.length === 0) return;
     setImageUploading(true);
     try {
-      const uploaded = await uploadReportImage(imageFile);
       // Look up the just-created session to find the first entry's report id.
       const detail = await apiGet<{ item: ReportSession }>(
         `/api/reports/sessions/${sessionDetailId}`,
@@ -249,15 +267,17 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
         toast.warning("報告は登録されましたが、画像を紐付けるエントリが見つかりませんでした");
         return;
       }
-      await apiPatch(`/api/reports/${firstEntry.id}`, { image_url: uploaded.url });
+      const uploaded = await uploadReportImages(imageFiles);
+      await attachReportImages(firstEntry.id, uploaded.objectKeys);
       const ratio =
         uploaded.originalBytes > 0
           ? Math.round((1 - uploaded.finalBytes / uploaded.originalBytes) * 100)
           : 0;
+      const n = uploaded.objectKeys.length;
       toast.success(
         ratio > 0
-          ? `画像を添付しました（${formatBytes(uploaded.originalBytes)} → ${formatBytes(uploaded.finalBytes)}、${ratio}%削減）`
-          : `画像を添付しました（${formatBytes(uploaded.finalBytes)}）`,
+          ? `画像${n}枚を添付しました（${formatBytes(uploaded.originalBytes)} → ${formatBytes(uploaded.finalBytes)}、${ratio}%削減）`
+          : `画像${n}枚を添付しました（${formatBytes(uploaded.finalBytes)}）`,
       );
     } catch (e) {
       const msg = e instanceof Error ? e.message : "画像のアップロードに失敗しました";
@@ -300,7 +320,7 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
       if (!isEdit) {
         setMemo("");
         setBlocks([newBlock()]);
-        setImageFile(null);
+        setImageFiles([]);
         clearDraft();
       }
       onDone?.();
@@ -440,30 +460,35 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
             <ImageIcon className="h-4 w-4 text-primary" />
-            報告画像（任意）
+            報告画像（任意・最大{MAX_REPORT_IMAGES}枚）
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {imagePreview ? (
-            <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element -- local blob: URL preview; next/image can't optimise it */}
-              <img
-                src={imagePreview}
-                alt="選択した画像のプレビュー"
-                className="max-h-60 w-auto rounded-md border object-contain"
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                className="absolute right-1 top-1 h-7 w-7"
-                onClick={clearImage}
-                aria-label="画像を削除"
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+          {imagePreviews.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {imagePreviews.map((src, i) => (
+                <div key={src} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- local blob: URL preview; next/image can't optimise it */}
+                  <img
+                    src={src}
+                    alt={`選択した画像 ${i + 1}`}
+                    className="aspect-square w-full rounded-md border object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute right-1 top-1 h-6 w-6"
+                    onClick={() => removeImageAt(i)}
+                    aria-label={`画像 ${i + 1} を削除`}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          ) : (
+          )}
+          {imageFiles.length < MAX_REPORT_IMAGES && (
             <Label
               htmlFor="report-image-input"
               className="flex h-24 cursor-pointer items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/40"
@@ -475,13 +500,13 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
             id="report-image-input"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
-            capture="environment"
+            multiple
             className="hidden"
             onChange={onPickImage}
           />
-          {imageFile && (
+          {imageFiles.length > 0 && (
             <p className="text-[10px] text-muted-foreground">
-              {imageFile.name} — {formatBytes(imageFile.size)}（送信時に自動圧縮されます）
+              {imageFiles.length}/{MAX_REPORT_IMAGES}枚選択中（送信時に自動圧縮されます）
             </p>
           )}
         </CardContent>

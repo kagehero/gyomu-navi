@@ -3,6 +3,8 @@ import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import type { InputUnit, LineMemoField, VehicleSelectMode } from "@/lib/reports/business-type-rules";
 import { compressReportImage } from "@/lib/reports/image-compression";
 
+export type ReportImageMeta = { imageId: string; sortOrder: number };
+
 export type BusinessReport = {
   id: string;
   staff_id: string;
@@ -16,6 +18,9 @@ export type BusinessReport = {
   business_line_name: string | null;
   count: number;
   image_url: string | null;
+  /** Multi-image attachments (report_images). image_url is kept for legacy rows. */
+  images: ReportImageMeta[];
+  image_count: number;
   memo: string | null;
   session_memo: string | null;
   session_submitted_at?: string | null;
@@ -351,4 +356,40 @@ export async function uploadReportImage(file: File): Promise<{
     finalBytes: compressed.finalBytes,
     originalBytes: compressed.originalBytes,
   };
+}
+
+/** Max images per report — mirrors the server-side cap (ReportsService.MAX_IMAGES). */
+export const MAX_REPORT_IMAGES = 10;
+
+export type MultiUploadResult = {
+  objectKeys: string[];
+  originalBytes: number;
+  finalBytes: number;
+};
+
+/**
+ * Compress + upload several images, returning their object keys in order.
+ * Uploads run sequentially to keep memory/bandwidth predictable on mobile.
+ */
+export async function uploadReportImages(files: File[]): Promise<MultiUploadResult> {
+  const objectKeys: string[] = [];
+  let originalBytes = 0;
+  let finalBytes = 0;
+  for (const file of files) {
+    const r = await uploadReportImage(file);
+    objectKeys.push(r.url);
+    originalBytes += r.originalBytes;
+    finalBytes += r.finalBytes;
+  }
+  return { objectKeys, originalBytes, finalBytes };
+}
+
+/** Attach uploaded object keys to a report (server enforces the 10-image cap). */
+export async function attachReportImages(
+  reportId: string,
+  objectKeys: string[],
+): Promise<{ items: ReportImageMeta[] }> {
+  return apiPost<{ items: ReportImageMeta[] }>(`/api/reports/${reportId}/images`, {
+    objectKeys,
+  });
 }

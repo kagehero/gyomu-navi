@@ -3,15 +3,52 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { reportImageSrc } from "@/lib/reports/format";
+import { reportImageByIdSrc, reportImageSrc } from "@/lib/reports/format";
 import { formatJPDateTime } from "@/lib/dates";
 
+/**
+ * One viewable image. `key` is a unique id used for navigation; `src` is the
+ * resolved proxy URL. Legacy single-image rows (image_url only) and new
+ * multi-image rows (report_images) both map onto this flat shape.
+ */
 export type LightboxItem = {
-  id: string;
+  key: string;
+  src: string;
   client_name: string;
   staff_name?: string;
   reported_at: string;
 };
+
+/** Build a lightbox item from a report's single legacy image (image_url). */
+export function legacyLightboxItem(report: {
+  id: string;
+  client_name: string;
+  staff_name?: string;
+  reported_at: string;
+}): LightboxItem {
+  return {
+    key: report.id,
+    src: reportImageSrc(report.id),
+    client_name: report.client_name,
+    staff_name: report.staff_name,
+    reported_at: report.reported_at,
+  };
+}
+
+/** Build a lightbox item for a specific multi-image (report_images.id). */
+export function imageLightboxItem(
+  reportId: string,
+  imageId: string,
+  meta: { client_name: string; staff_name?: string; reported_at: string },
+): LightboxItem {
+  return {
+    key: imageId,
+    src: reportImageByIdSrc(reportId, imageId),
+    client_name: meta.client_name,
+    staff_name: meta.staff_name,
+    reported_at: meta.reported_at,
+  };
+}
 
 /**
  * Full-screen image viewer with prev/next navigation across all images
@@ -32,17 +69,17 @@ export function ReportImageLightbox({
   onClose: () => void;
   onNavigate: (id: string) => void;
 }) {
-  const idx = items.findIndex((i) => i.id === currentId);
+  const idx = items.findIndex((i) => i.key === currentId);
   const current = idx >= 0 ? items[idx] : null;
 
   const goPrev = useCallback(() => {
     if (idx <= 0) return;
-    onNavigate(items[idx - 1]!.id);
+    onNavigate(items[idx - 1]!.key);
   }, [idx, items, onNavigate]);
 
   const goNext = useCallback(() => {
     if (idx < 0 || idx >= items.length - 1) return;
-    onNavigate(items[idx + 1]!.id);
+    onNavigate(items[idx + 1]!.key);
   }, [idx, items, onNavigate]);
 
   useEffect(() => {
@@ -117,8 +154,8 @@ export function ReportImageLightbox({
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- backend image proxy; next/image can't optimise it */}
         <img
-          key={current.id}
-          src={reportImageSrc(current.id)}
+          key={current.key}
+          src={current.src}
           alt={`${current.client_name} の報告画像`}
           className="max-h-[78vh] max-w-full rounded-md bg-black object-contain shadow-2xl"
         />
