@@ -1,8 +1,13 @@
 import "reflect-metadata";
 import { config as loadEnv } from "dotenv";
 import { DataSource } from "typeorm";
+import { registerPgTypeParsers } from "./src/database/pg-type-parsers";
 
 loadEnv();
+
+// Keep numeric/float8/int8 as JS numbers here too, so migration/seed scripts
+// run against the same type coercion as the NestJS runtime (see main.ts).
+registerPgTypeParsers();
 
 /**
  * Standalone DataSource for the `npm run migration:*` scripts.
