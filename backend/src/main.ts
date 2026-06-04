@@ -4,8 +4,13 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import { registerPgTypeParsers } from "./database/pg-type-parsers";
 
 async function bootstrap() {
+  // Must run before the first DB connection so numeric/float8/int8 come back
+  // as JS numbers, not strings (otherwise reduce()-based totals concatenate).
+  registerPgTypeParsers();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
