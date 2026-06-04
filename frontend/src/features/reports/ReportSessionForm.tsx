@@ -458,9 +458,14 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <ImageIcon className="h-4 w-4 text-primary" />
-            報告画像（任意・最大{MAX_REPORT_IMAGES}枚）
+          <CardTitle className="flex items-center justify-between gap-2 text-sm">
+            <span className="flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-primary" />
+              報告画像（任意・最大{MAX_REPORT_IMAGES}枚）
+            </span>
+            <span className="text-xs font-normal text-muted-foreground">
+              {imageFiles.length}/{MAX_REPORT_IMAGES}枚（残り{MAX_REPORT_IMAGES - imageFiles.length}枚）
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -488,13 +493,20 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
               ))}
             </div>
           )}
-          {imageFiles.length < MAX_REPORT_IMAGES && (
+          {imageFiles.length < MAX_REPORT_IMAGES ? (
             <Label
               htmlFor="report-image-input"
-              className="flex h-24 cursor-pointer items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/40"
+              className="flex h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted/40"
             >
-              タップして画像を選択（JPEG / PNG / HEIC / WebP）
+              <span>タップして画像を選択（複数選択可・JPEG / PNG / HEIC / WebP）</span>
+              <span className="text-[10px] text-muted-foreground/80">
+                あと{MAX_REPORT_IMAGES - imageFiles.length}枚追加できます
+              </span>
             </Label>
+          ) : (
+            <p className="rounded-md border border-dashed bg-muted/30 px-3 py-3 text-center text-xs text-muted-foreground">
+              最大{MAX_REPORT_IMAGES}枚に達しました（追加するには画像を削除してください）
+            </p>
           )}
           <Input
             id="report-image-input"
@@ -506,7 +518,7 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
           />
           {imageFiles.length > 0 && (
             <p className="text-[10px] text-muted-foreground">
-              {imageFiles.length}/{MAX_REPORT_IMAGES}枚選択中（送信時に自動圧縮されます）
+              送信時に自動圧縮されます
             </p>
           )}
         </CardContent>

@@ -323,6 +323,21 @@ export function useDeleteReport() {
  * call may 5xx — the caller catches that and shows a toast without failing
  * the whole report submission.
  */
+/**
+ * Coerce a (possibly Japanese / emoji / symbol-laden) filename into what the
+ * presign endpoint accepts: `^[A-Za-z0-9._\- ]{1,128}$`. The server appends a
+ * UUID to form the object key, so the name is cosmetic — we just need it valid.
+ * Non-allowed chars become `_`; the extension is preserved when present.
+ */
+function sanitizeUploadFilename(name: string): string {
+  const dot = name.lastIndexOf(".");
+  const ext = dot > 0 ? name.slice(dot + 1).replace(/[^A-Za-z0-9]/g, "") : "";
+  const base = (dot > 0 ? name.slice(0, dot) : name).replace(/[^A-Za-z0-9._\- ]/g, "_");
+  const safeBase = base.replace(/^[\s_]+|[\s_]+$/g, "") || "image";
+  const full = ext ? `${safeBase}.${ext}` : safeBase;
+  return full.slice(0, 128);
+}
+
 export async function uploadReportImage(file: File): Promise<{
   url: string;
   finalBytes: number;
@@ -333,7 +348,7 @@ export async function uploadReportImage(file: File): Promise<{
   const presign = await apiPost<{ uploadUrl: string; objectKey: string }>(
     "/api/uploads/presign",
     {
-      filename: compressed.file.name,
+      filename: sanitizeUploadFilename(compressed.file.name),
       contentType: compressed.file.type,
       contentLength: compressed.file.size,
     },
