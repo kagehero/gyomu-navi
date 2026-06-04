@@ -35,8 +35,8 @@ export function AnalyticsFilters({ filters, onChange, isAdmin }: Props) {
           <Filter className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-medium text-muted-foreground">集計条件</span>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-[150px] space-y-1">
             <Label className="text-xs text-muted-foreground">開始日</Label>
             <Input
               type="date"
@@ -45,7 +45,7 @@ export function AnalyticsFilters({ filters, onChange, isAdmin }: Props) {
               onChange={(e) => set({ from: e.target.value })}
             />
           </div>
-          <div className="space-y-1">
+          <div className="w-[150px] space-y-1">
             <Label className="text-xs text-muted-foreground">終了日</Label>
             <Input
               type="date"
@@ -57,7 +57,7 @@ export function AnalyticsFilters({ filters, onChange, isAdmin }: Props) {
 
           {isAdmin && (
             <>
-              <div className="space-y-1">
+              <div className="w-[180px] space-y-1">
                 <Label className="text-xs text-muted-foreground">顧客</Label>
                 <Select
                   value={filters.client_id}
@@ -76,7 +76,7 @@ export function AnalyticsFilters({ filters, onChange, isAdmin }: Props) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1">
+              <div className="w-[160px] space-y-1">
                 <Label className="text-xs text-muted-foreground">スタッフ</Label>
                 <Select
                   value={filters.staff_id}
@@ -95,7 +95,7 @@ export function AnalyticsFilters({ filters, onChange, isAdmin }: Props) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1">
+              <div className="w-[180px] space-y-1">
                 <Label className="text-xs text-muted-foreground">拠点</Label>
                 <Select
                   value={filters.site_id}
