@@ -27,6 +27,8 @@ import {
 } from "@/features/reports/ReportImageLightbox";
 import { useClients, useStaffs } from "@/features/master/api";
 import { CsvExportMenu } from "@/features/analytics/CsvExportMenu";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { filtersToParams, type AnalyticsFilterState } from "@/features/analytics/utils";
 import {
   Search,
@@ -420,18 +422,14 @@ export default function ReportsPage() {
   );
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">業務報告</h1>
-          <p className="text-sm text-muted-foreground">
-            {isEmployee
-              ? "日付・部門・顧客を選んで業務実績を報告"
-              : "業務報告の一覧・売上集計"}
-          </p>
-        </div>
-        {isAdmin && <CsvExportMenu params={csvParams} />}
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="業務報告"
+        description={
+          isEmployee ? "日付・部門・顧客を選んで業務実績を報告" : "業務報告の一覧・売上集計"
+        }
+        actions={isAdmin ? <CsvExportMenu params={csvParams} /> : undefined}
+      />
 
       {isEmployee ? (
         <Tabs defaultValue="submit">
@@ -449,7 +447,7 @@ export default function ReportsPage() {
       ) : (
         listSection
       )}
-    </div>
+    </PageContainer>
   );
 }
 

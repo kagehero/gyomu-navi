@@ -8,17 +8,16 @@ import MasterSitesCrud from "@/features/master/MasterSitesCrud";
 import MasterBusinessTypesCrud from "@/features/master/MasterBusinessTypesCrud";
 import MasterDepartmentsCrud from "@/features/master/MasterDepartmentsCrud";
 import MasterBusinessLinesCrud from "@/features/master/MasterBusinessLinesCrud";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function MasterPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="page-header">マスタ管理</h1>
-        <p className="text-sm text-muted-foreground -mt-2">各種マスタデータの管理</p>
-      </div>
+    <PageContainer>
+      <PageHeader title="マスタ管理" description="各種マスタデータの管理" />
 
       <Tabs defaultValue="staff">
-        <TabsList className="flex-wrap">
+        <TabsList className="flex w-full flex-wrap justify-start gap-1">
           <TabsTrigger value="staff" className="gap-1.5">
             <Users className="h-3.5 w-3.5" />
             スタッフ
@@ -64,6 +63,6 @@ export default function MasterPage() {
           <MasterBusinessTypesCrud />
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

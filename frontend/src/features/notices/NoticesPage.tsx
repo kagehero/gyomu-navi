@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMySites } from "@/features/attendance/api";
@@ -70,15 +72,15 @@ export default function NoticesPage() {
   }, [boardPosts]);
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">連絡・掲示板</h1>
-        <p className="text-sm text-muted-foreground -mt-0.5">
-          {isEmployee
+    <PageContainer>
+      <PageHeader
+        title="連絡・掲示板"
+        description={
+          isEmployee
             ? "あなた宛 / 自部門 / 全体 の連絡と、配属現場の掲示"
-            : "業務連絡・現場別掲示板"}
-        </p>
-      </div>
+            : "業務連絡・現場別掲示板"
+        }
+      />
 
       <Tabs defaultValue="notices">
         <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-auto">
@@ -238,6 +240,6 @@ export default function NoticesPage() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

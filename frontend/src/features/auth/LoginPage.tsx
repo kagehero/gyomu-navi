@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
-import { Building2, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -74,8 +74,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-background to-muted/40 p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Building2 className="h-6 w-6" />
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand logo */}
+            <img
+              src="/icon.png"
+              alt="業務管理システム ロゴ"
+              className="h-full w-full object-contain p-1"
+            />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">業務管理システム</h1>
           <p className="text-sm text-muted-foreground">Gyomu Navi — 社内の業務にログイン</p>

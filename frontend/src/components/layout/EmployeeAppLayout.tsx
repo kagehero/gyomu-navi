@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { LogOut, Building2 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
@@ -33,8 +33,13 @@ export function EmployeeAppLayout({ children }: { children: React.ReactNode }) {
       <div className="employee-mobile relative flex w-full max-w-md min-h-dvh flex-col overflow-hidden border-x border-border/60 bg-background shadow-xl sm:my-2 sm:min-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-1rem)] sm:rounded-2xl sm:border sm:shadow-2xl">
         <header className="sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between border-b bg-card/95 px-3 backdrop-blur sm:rounded-t-2xl">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Building2 className="h-4 w-4" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-border">
+              {/* eslint-disable-next-line @next/next/no-img-element -- static brand logo */}
+              <img
+                src="/icon.png"
+                alt="業務管理システム ロゴ"
+                className="h-full w-full object-contain"
+              />
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight">{title}</p>

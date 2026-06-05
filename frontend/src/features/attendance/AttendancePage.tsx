@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -343,15 +345,13 @@ export default function AttendancePage() {
   const isEmployee = user?.role === "employee";
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">勤怠管理</h1>
-        <p className="text-sm text-muted-foreground -mt-0.5">
-          {isEmployee ? "本日の打刻" : "GPS打刻・勤怠状況の確認"}
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="勤怠管理"
+        description={isEmployee ? "本日の打刻" : "GPS打刻・勤怠状況の確認"}
+      />
 
       {isEmployee ? <EmployeePunchPanel /> : <AdminAttendanceList />}
-    </div>
+    </PageContainer>
   );
 }

@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Loader2, MapPin } from "lucide-react";
+import { DataList } from "@/components/ui/data-list";
 import { toast } from "sonner";
 import {
   useClients,
@@ -224,10 +225,38 @@ export default function MasterSitesCrud() {
           <SiteFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
         </Dialog>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
+      <CardContent className="p-3 md:p-0">
+        <DataList
+          items={items}
+          isLoading={listQ.isLoading}
+          error={listQ.isError ? listQ.error : undefined}
+          getKey={(s) => s.id}
+          empty={{ icon: MapPin, title: "拠点がありません" }}
+          renderCard={(s) => (
+            <div className="rounded-xl border bg-card p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{s.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{s.client_name}</p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => openEdit(s)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive" onClick={() => setDeleting(s)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span>報告用: {s.is_billing_branch ? "はい" : "いいえ"}</span>
+                <span>判定半径: {s.radius_m}m</span>
+              </div>
+            </div>
+          )}
+          table={{
+            minWidth: 640,
+            head: (
               <tr>
                 <th>拠点名</th>
                 <th>顧客</th>
@@ -235,53 +264,25 @@ export default function MasterSitesCrud() {
                 <th className="text-right">判定半径</th>
                 <th className="w-24 text-right">操作</th>
               </tr>
-            </thead>
-            <tbody>
-              {listQ.isLoading && (
-                <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  </td>
-                </tr>
-              )}
-              {listQ.isError && (
-                <tr>
-                  <td colSpan={5} className="py-6 text-center text-sm text-destructive">
-                    {errorMessage(listQ.error)}
-                  </td>
-                </tr>
-              )}
-              {items.map((s) => (
-                <tr key={s.id} className="hover:bg-muted/30">
-                  <td className="font-medium text-sm">{s.name}</td>
-                  <td className="text-sm">{s.client_name}</td>
-                  <td className="text-sm">{s.is_billing_branch ? "はい" : "いいえ"}</td>
-                  <td className="text-right text-sm">{s.radius_m}m</td>
-                  <td className="text-right">
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(s)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-destructive"
-                      onClick={() => setDeleting(s)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {!listQ.isLoading && items.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-6 text-center text-muted-foreground">
-                    拠点がありません
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            ),
+            renderRow: (s) => (
+              <tr>
+                <td className="text-sm font-medium">{s.name}</td>
+                <td className="text-sm">{s.client_name}</td>
+                <td className="text-sm">{s.is_billing_branch ? "はい" : "いいえ"}</td>
+                <td className="text-right text-sm">{s.radius_m}m</td>
+                <td className="text-right">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(s)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => setDeleting(s)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </td>
+              </tr>
+            ),
+          }}
+        />
       </CardContent>
 
       <DeleteConfirmDialog

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { BarChart3, Loader2, PieChart as PieChartIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import {
   useClientAnalytics,
@@ -204,19 +206,17 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
+    <PageContainer>
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
             <BarChart3 className="h-6 w-6 text-primary" />
             売上・報告集計
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            日次・週次・月次および顧客/従業員/現場別の集計を確認できます
-          </p>
-        </div>
-        <CsvExportMenu params={params} />
-      </div>
+          </span>
+        }
+        description="日次・週次・月次および顧客/従業員/現場別の集計を確認できます"
+        actions={<CsvExportMenu params={params} />}
+      />
 
       <AnalyticsFilters filters={filters} onChange={setFilters} isAdmin={isAdmin} />
 
@@ -297,6 +297,6 @@ export default function AnalyticsPage() {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }
