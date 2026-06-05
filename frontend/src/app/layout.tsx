@@ -15,8 +15,11 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary" },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/icons/icon-192.png",
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/icon.png",
   },
   appleWebApp: {
     capable: true,

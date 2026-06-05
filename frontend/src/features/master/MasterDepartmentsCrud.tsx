@@ -15,7 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Loader2, Network } from "lucide-react";
+import { DataList } from "@/components/ui/data-list";
 import { toast } from "sonner";
 import {
   useCreateDepartment,
@@ -147,56 +148,49 @@ export default function MasterDepartmentsCrud() {
           />
         </Dialog>
       </CardHeader>
-      <CardContent className="p-0">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th className="w-24 text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {listQ.isLoading && (
+      <CardContent className="p-3 md:p-0">
+        <DataList
+          items={items}
+          isLoading={listQ.isLoading}
+          error={listQ.isError ? listQ.error : undefined}
+          getKey={(d) => d.id}
+          empty={{ icon: Network, title: "部門がありません" }}
+          renderCard={(d) => (
+            <div className="flex items-center justify-between gap-2 rounded-xl border bg-card p-3">
+              <p className="min-w-0 truncate text-sm font-semibold">{d.name}</p>
+              <div className="flex shrink-0 gap-1">
+                <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => openEdit(d)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive" onClick={() => setDeleting(d)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+          table={{
+            minWidth: 320,
+            head: (
               <tr>
-                <td colSpan={2} className="py-6 text-center text-muted-foreground">
-                  <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                </td>
+                <th>名称</th>
+                <th className="w-24 text-right">操作</th>
               </tr>
-            )}
-            {listQ.isError && (
+            ),
+            renderRow: (d) => (
               <tr>
-                <td colSpan={2} className="py-6 text-center text-sm text-destructive">
-                  {errorMessage(listQ.error)}
-                </td>
-              </tr>
-            )}
-            {items.map((d) => (
-              <tr key={d.id} className="hover:bg-muted/30">
-                <td className="font-medium text-sm">{d.name}</td>
+                <td className="text-sm font-medium">{d.name}</td>
                 <td className="text-right">
                   <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(d)}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
-                    onClick={() => setDeleting(d)}
-                  >
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => setDeleting(d)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </td>
               </tr>
-            ))}
-            {!listQ.isLoading && items.length === 0 && (
-              <tr>
-                <td colSpan={2} className="py-6 text-center text-muted-foreground">
-                  部門がありません
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            ),
+          }}
+        />
       </CardContent>
 
       <DeleteConfirmDialog

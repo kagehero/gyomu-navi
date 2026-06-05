@@ -73,8 +73,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-            <Building2 className="h-4 w-4 text-sidebar-primary-foreground" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-sidebar-border">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand logo */}
+            <img
+              src="/icon.png"
+              alt="業務管理システム ロゴ"
+              className="h-full w-full object-contain"
+            />
           </div>
           {!collapsed && (
             <div className="flex flex-col">

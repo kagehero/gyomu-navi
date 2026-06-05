@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Loader2, Briefcase } from "lucide-react";
+import { DataList } from "@/components/ui/data-list";
 import { toast } from "sonner";
 import {
   useBusinessLines,
@@ -270,10 +271,41 @@ export default function MasterBusinessTypesCrud() {
           />
         </Dialog>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
+      <CardContent className="p-3 md:p-0">
+        <DataList
+          items={items}
+          isLoading={listQ.isLoading}
+          error={listQ.isError ? listQ.error : undefined}
+          getKey={(b) => b.id}
+          empty={{ icon: Briefcase, title: "業務内容がありません" }}
+          renderCard={(b) => (
+            <div className="rounded-xl border bg-card p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{b.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{b.client_name}</p>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => openEdit(b)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive" onClick={() => setDeleting(b)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span>拠点: {b.site_name ?? "—"}</span>
+                <span>部門: {b.business_line_name ?? "—"}</span>
+                <span className="font-medium text-foreground">
+                  {b.unit_price_incl != null ? `¥${Math.round(b.unit_price_incl).toLocaleString()}` : "単価—"}
+                </span>
+              </div>
+            </div>
+          )}
+          table={{
+            minWidth: 720,
+            head: (
               <tr>
                 <th>業務名</th>
                 <th>顧客</th>
@@ -282,58 +314,30 @@ export default function MasterBusinessTypesCrud() {
                 <th className="text-right">単価(税込)</th>
                 <th className="w-24 text-right">操作</th>
               </tr>
-            </thead>
-            <tbody>
-              {listQ.isLoading && (
-                <tr>
-                  <td colSpan={6} className="py-6 text-center text-muted-foreground">
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  </td>
-                </tr>
-              )}
-              {listQ.isError && (
-                <tr>
-                  <td colSpan={6} className="py-6 text-center text-sm text-destructive">
-                    {errorMessage(listQ.error)}
-                  </td>
-                </tr>
-              )}
-              {items.map((b) => (
-                <tr key={b.id} className="hover:bg-muted/30">
-                  <td className="font-medium text-sm">{b.name}</td>
-                  <td className="text-sm">{b.client_name}</td>
-                  <td className="text-sm text-muted-foreground">{b.site_name ?? "—"}</td>
-                  <td className="text-sm text-muted-foreground">{b.business_line_name ?? "—"}</td>
-                  <td className="text-right text-sm">
-                    {b.unit_price_incl != null
-                      ? `¥${Math.round(b.unit_price_incl).toLocaleString()}`
-                      : "—"}
-                  </td>
-                  <td className="text-right">
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(b)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-destructive"
-                      onClick={() => setDeleting(b)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {!listQ.isLoading && items.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-6 text-center text-muted-foreground">
-                    業務内容がありません
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            ),
+            renderRow: (b) => (
+              <tr>
+                <td className="text-sm font-medium">{b.name}</td>
+                <td className="text-sm">{b.client_name}</td>
+                <td className="text-sm text-muted-foreground">{b.site_name ?? "—"}</td>
+                <td className="text-sm text-muted-foreground">{b.business_line_name ?? "—"}</td>
+                <td className="text-right text-sm">
+                  {b.unit_price_incl != null
+                    ? `¥${Math.round(b.unit_price_incl).toLocaleString()}`
+                    : "—"}
+                </td>
+                <td className="text-right">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(b)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => setDeleting(b)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </td>
+              </tr>
+            ),
+          }}
+        />
       </CardContent>
 
       <DeleteConfirmDialog

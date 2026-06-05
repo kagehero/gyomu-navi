@@ -6,14 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Settings as SettingsIcon, Bell, Shield, Database } from "lucide-react";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="page-header">設定</h1>
-        <p className="text-sm text-muted-foreground -mt-2">システム設定の管理</p>
-      </div>
+    <PageContainer width="narrow">
+      <PageHeader title="設定" description="システム設定の管理" />
 
       <Card>
         <CardHeader className="pb-3">
@@ -84,6 +83,6 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

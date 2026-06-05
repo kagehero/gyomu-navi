@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { useAttendance } from "@/features/attendance/api";
 import { useDashboardAnalytics } from "@/features/analytics/api";
@@ -142,20 +144,18 @@ function AdminDashboard({
     stats && stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0;
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">ダッシュボード</h1>
-          <p className="-mt-0.5 text-sm text-muted-foreground">
-            本日の業務状況をリアルタイムで確認できます
-          </p>
-        </div>
-        {canViewAnalytics && (
-          <Button variant="outline" size="sm" className="h-9 shrink-0" asChild>
-            <Link href="/analytics">売上・報告集計へ</Link>
-          </Button>
-        )}
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="ダッシュボード"
+        description="本日の業務状況をリアルタイムで確認できます"
+        actions={
+          canViewAnalytics ? (
+            <Button variant="outline" size="sm" className="h-9" asChild>
+              <Link href="/analytics">売上・報告集計へ</Link>
+            </Button>
+          ) : undefined
+        }
+      />
 
       <OnboardingBanner role={isAdmin ? "admin" : "manager"} />
 
@@ -172,7 +172,7 @@ function AdminDashboard({
             )}
           </CardContent>
         </Card>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:col-span-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:col-span-3">
           <KpiCard
             title="本日の報告"
             value={dashQ.isLoading ? "—" : (dash?.today.report_count ?? 0)}
@@ -322,6 +322,6 @@ function AdminDashboard({
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   );
 }

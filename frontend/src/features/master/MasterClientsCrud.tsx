@@ -24,7 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Plus, Trash2, Loader2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Loader2, Building2 } from "lucide-react";
+import { DataList } from "@/components/ui/data-list";
 import { toast } from "sonner";
 import {
   useBusinessLines,
@@ -151,49 +152,18 @@ function ClientFormDialog({
   );
 }
 
-function ClientTableRows({
-  clients,
-  blMap,
-  onEdit,
-  onDelete,
-}: {
-  clients: ClientCompany[];
-  blMap: Map<string, string>;
-  onEdit: (c: ClientCompany) => void;
-  onDelete: (c: ClientCompany) => void;
-}) {
-  return clients.map((c) => (
-    <tr key={c.id} className="hover:bg-muted/30">
-      <td className="font-medium text-sm">{c.name}</td>
-      <td className="text-sm text-muted-foreground">{c.code}</td>
-      <td className="text-sm">
-        <div className="flex flex-wrap gap-1">
-          {(c.business_line_ids ?? []).length === 0 ? (
-            <span className="text-muted-foreground">—</span>
-          ) : (
-            (c.business_line_ids ?? []).map((id) => (
-              <Badge key={`${c.id}-${id}`} variant="secondary" className="text-[10px] font-normal">
-                {blMap.get(id) ?? id}
-              </Badge>
-            ))
-          )}
-        </div>
-      </td>
-      <td className="text-right">
-        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(c)}>
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-8 w-8 text-destructive"
-          onClick={() => onDelete(c)}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      </td>
-    </tr>
-  ));
+function clientBlBadges(c: ClientCompany, blMap: Map<string, string>) {
+  const ids = c.business_line_ids ?? [];
+  if (ids.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {ids.map((id) => (
+        <Badge key={`${c.id}-${id}`} variant="secondary" className="text-[10px] font-normal">
+          {blMap.get(id) ?? id}
+        </Badge>
+      ))}
+    </div>
+  );
 }
 
 function ClientsTable({
@@ -210,32 +180,56 @@ function ClientsTable({
   emptyMessage: string;
 }) {
   return (
-    <table className="data-table">
-      <thead>
-        <tr>
-          <th>企業名</th>
-          <th>コード</th>
-          <th>報告部門</th>
-          <th className="w-24 text-right">操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        {clients.length === 0 ? (
+    <DataList
+      items={clients}
+      getKey={(c) => c.id}
+      empty={{ icon: Building2, title: emptyMessage || "顧客がありません" }}
+      renderCard={(c) => (
+        <div className="rounded-xl border bg-card p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{c.name}</p>
+              <p className="text-xs text-muted-foreground">コード: {c.code}</p>
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => onEdit(c)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive" onClick={() => onDelete(c)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="mt-2">{clientBlBadges(c, blMap)}</div>
+        </div>
+      )}
+      table={{
+        minWidth: 600,
+        head: (
           <tr>
-            <td colSpan={4} className="py-6 text-center text-muted-foreground">
-              {emptyMessage}
+            <th>企業名</th>
+            <th>コード</th>
+            <th>報告部門</th>
+            <th className="w-24 text-right">操作</th>
+          </tr>
+        ),
+        renderRow: (c) => (
+          <tr>
+            <td className="text-sm font-medium">{c.name}</td>
+            <td className="text-sm text-muted-foreground">{c.code}</td>
+            <td className="text-sm">{clientBlBadges(c, blMap)}</td>
+            <td className="text-right">
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onEdit(c)}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => onDelete(c)}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </td>
           </tr>
-        ) : (
-          <ClientTableRows
-            clients={clients}
-            blMap={blMap}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        )}
-      </tbody>
-    </table>
+        ),
+      }}
+    />
   );
 }
 

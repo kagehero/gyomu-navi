@@ -23,8 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Pencil, Trash2, Loader2, X } from "lucide-react";
+import { CheckCircle2, Pencil, Trash2, Loader2, X, Users } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { DataList } from "@/components/ui/data-list";
 import {
   useDeleteStaff,
   useDepartments,
@@ -430,10 +432,55 @@ export default function MasterStaffsCrud() {
           </p>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
+      <CardContent className="p-3 md:p-0">
+        <DataList
+          items={items}
+          isLoading={listQ.isLoading}
+          error={listQ.isError ? listQ.error : undefined}
+          getKey={(s) => s.id}
+          empty={{ icon: Users, title: "スタッフがいません", description: "従業員は /register から登録します" }}
+          renderCard={(s) => (
+            <div
+              className={cn(
+                "rounded-xl border p-3",
+                isPending(s) ? "border-amber-300 bg-amber-50/60" : "bg-card",
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{s.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{s.login_email ?? "—"}</p>
+                </div>
+                {isPending(s) ? (
+                  <Badge variant="outline" className="shrink-0 border-amber-500 text-amber-700">
+                    承認待ち
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="shrink-0">利用可</Badge>
+                )}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span>部門: {s.department_name ?? "未設定"}</span>
+                <span>{s.business_line_ids?.length ?? 0}部門 / {s.client_ids?.length ?? 0}顧客</span>
+                <span>時給 ¥{s.hourly_rate.toLocaleString()}</span>
+              </div>
+              <div className="mt-2 flex justify-end gap-1 border-t pt-2">
+                <Button size="sm" variant="ghost" className="h-9" onClick={() => openEdit(s)}>
+                  {isPending(s) ? (
+                    <><CheckCircle2 className="mr-1 h-4 w-4 text-primary" />承認</>
+                  ) : (
+                    <><Pencil className="mr-1 h-4 w-4" />編集</>
+                  )}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-9 text-destructive" onClick={() => setDeleting(s)}>
+                  <Trash2 className="mr-1 h-4 w-4" />削除
+                </Button>
+              </div>
+            </div>
+          )}
+          table={{
+            minWidth: 760,
+            head: (
               <tr>
                 <th>名前</th>
                 <th>状態</th>
@@ -443,72 +490,39 @@ export default function MasterStaffsCrud() {
                 <th className="text-right">時給</th>
                 <th className="w-24 text-right">操作</th>
               </tr>
-            </thead>
-            <tbody>
-              {listQ.isLoading && (
-                <tr>
-                  <td colSpan={7} className="py-6 text-center text-muted-foreground">
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  </td>
-                </tr>
-              )}
-              {listQ.isError && (
-                <tr>
-                  <td colSpan={7} className="py-6 text-center text-sm text-destructive">
-                    {errorMessage(listQ.error)}
-                  </td>
-                </tr>
-              )}
-              {items.map((s) => (
-                <tr
-                  key={s.id}
-                  className={isPending(s) ? "bg-amber-50/60 hover:bg-amber-50" : "hover:bg-muted/30"}
-                >
-                  <td className="font-medium text-sm">{s.name}</td>
-                  <td>
+            ),
+            renderRow: (s) => (
+              <tr className={isPending(s) ? "bg-amber-50/60 hover:bg-amber-50" : ""}>
+                <td className="text-sm font-medium">{s.name}</td>
+                <td>
+                  {isPending(s) ? (
+                    <Badge variant="outline" className="border-amber-500 text-amber-700">承認待ち</Badge>
+                  ) : (
+                    <Badge variant="secondary">利用可</Badge>
+                  )}
+                </td>
+                <td className="text-sm text-muted-foreground">{s.login_email ?? "—"}</td>
+                <td className="text-sm">{s.department_name ?? "未設定"}</td>
+                <td className="text-right text-sm text-muted-foreground">
+                  {s.business_line_ids?.length ?? 0}部門 / {s.client_ids?.length ?? 0}顧客
+                </td>
+                <td className="text-right text-sm">¥{s.hourly_rate.toLocaleString()}</td>
+                <td className="text-right">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(s)}>
                     {isPending(s) ? (
-                      <Badge variant="outline" className="border-amber-500 text-amber-700">
-                        承認待ち
-                      </Badge>
+                      <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
                     ) : (
-                      <Badge variant="secondary">利用可</Badge>
+                      <Pencil className="h-3.5 w-3.5" />
                     )}
-                  </td>
-                  <td className="text-sm text-muted-foreground">{s.login_email ?? "—"}</td>
-                  <td className="text-sm">{s.department_name ?? "未設定"}</td>
-                  <td className="text-right text-sm text-muted-foreground">
-                    {s.business_line_ids?.length ?? 0}部門 / {s.client_ids?.length ?? 0}顧客
-                  </td>
-                  <td className="text-right text-sm">¥{s.hourly_rate.toLocaleString()}</td>
-                  <td className="text-right">
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(s)}>
-                      {isPending(s) ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                      ) : (
-                        <Pencil className="h-3.5 w-3.5" />
-                      )}
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-destructive"
-                      onClick={() => setDeleting(s)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {!listQ.isLoading && items.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-6 text-center text-muted-foreground">
-                    承認待ちの従業員はいません
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => setDeleting(s)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </td>
+              </tr>
+            ),
+          }}
+        />
       </CardContent>
 
       {editing && (
