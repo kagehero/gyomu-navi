@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/select";
 import { Pencil, Plus, Trash2, Loader2, Building2 } from "lucide-react";
 import { DataList } from "@/components/ui/data-list";
+import { SearchInput } from "@/components/ui/search-input";
+import { useTextSearch } from "@/hooks/use-text-search";
 import { toast } from "sonner";
 import {
   useBusinessLines,
@@ -252,6 +254,13 @@ export default function MasterClientsCrud() {
   // (listQ.data?.items ?? [] would mint a fresh empty array each pass).
   const items = useMemo(() => listQ.data?.items ?? [], [listQ.data?.items]);
 
+  // Search by company name / code, then the department grouping below derives
+  // from the matched subset. Counts in the filter dropdown stay on full `items`.
+  const { query, setQuery, results: searchedItems } = useTextSearch(items, (c) => [
+    c.name,
+    c.code,
+  ]);
+
   const clientCountByBl = useMemo(() => {
     const counts = new Map<string, number>();
     for (const bl of businessLines) counts.set(bl.id, 0);
@@ -270,32 +279,32 @@ export default function MasterClientsCrud() {
   }, [items, businessLines]);
 
   const filteredClients = useMemo(() => {
-    const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name, "ja"));
+    const sorted = [...searchedItems].sort((a, b) => a.name.localeCompare(b.name, "ja"));
     if (departmentFilter === ALL_DEPARTMENTS) return sorted;
     if (departmentFilter === UNASSIGNED) {
       return sorted.filter((c) => (c.business_line_ids ?? []).length === 0);
     }
     return sorted.filter((c) => (c.business_line_ids ?? []).includes(departmentFilter));
-  }, [items, departmentFilter]);
+  }, [searchedItems, departmentFilter]);
 
   const groupedSections = useMemo(() => {
     if (departmentFilter !== ALL_DEPARTMENTS) return [];
     return businessLines
       .map((bl) => ({
         bl,
-        clients: items
+        clients: searchedItems
           .filter((c) => (c.business_line_ids ?? []).includes(bl.id))
           .sort((a, b) => a.name.localeCompare(b.name, "ja")),
       }))
       .filter((s) => s.clients.length > 0);
-  }, [items, businessLines, departmentFilter]);
+  }, [searchedItems, businessLines, departmentFilter]);
 
   const unassignedClients = useMemo(() => {
     if (departmentFilter !== ALL_DEPARTMENTS) return [];
-    return items
+    return searchedItems
       .filter((c) => (c.business_line_ids ?? []).length === 0)
       .sort((a, b) => a.name.localeCompare(b.name, "ja"));
-  }, [items, departmentFilter]);
+  }, [searchedItems, departmentFilter]);
 
   const filterLabel = useMemo(() => {
     if (departmentFilter === ALL_DEPARTMENTS) return "すべての報告部門";
@@ -341,6 +350,16 @@ export default function MasterClientsCrud() {
             </DialogTrigger>
             <ClientFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
           </Dialog>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">検索</Label>
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="企業名・コードで検索"
+            className="w-full sm:max-w-xs"
+          />
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -430,7 +449,9 @@ export default function MasterClientsCrud() {
               </section>
             )}
             {groupedSections.length === 0 && unassignedClients.length === 0 && (
-              <p className="py-6 text-center text-muted-foreground">顧客がありません</p>
+              <p className="py-6 text-center text-muted-foreground">
+                {query ? `「${query}」に一致する顧客がありません` : "顧客がありません"}
+              </p>
             )}
           </div>
         )}

@@ -27,6 +27,8 @@ import { CheckCircle2, Pencil, Trash2, Loader2, X, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DataList } from "@/components/ui/data-list";
+import { SearchInput } from "@/components/ui/search-input";
+import { useTextSearch } from "@/hooks/use-text-search";
 import {
   useDeleteStaff,
   useDepartments,
@@ -421,24 +423,43 @@ export default function MasterStaffsCrud() {
 
   const items = listQ.data?.items ?? [];
   const pendingCount = items.filter(isPending).length;
+  const { query, setQuery, results } = useTextSearch(items, (s) => [
+    s.name,
+    s.login_email,
+    s.department_name,
+  ]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="space-y-3 pb-2">
         <div>
           <CardTitle className="text-sm font-medium">スタッフ一覧 ({items.length}名)</CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
             従業員は /register からログイン情報を登録します。承認待ち: {pendingCount}件
           </p>
         </div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="氏名・メール・部門で検索"
+          className="w-full sm:max-w-xs"
+        />
       </CardHeader>
       <CardContent className="p-3 md:p-0">
         <DataList
-          items={items}
+          items={results}
           isLoading={listQ.isLoading}
           error={listQ.isError ? listQ.error : undefined}
           getKey={(s) => s.id}
-          empty={{ icon: Users, title: "スタッフがいません", description: "従業員は /register から登録します" }}
+          empty={
+            query
+              ? {
+                  icon: Users,
+                  title: "該当するスタッフがいません",
+                  description: `「${query}」に一致するスタッフは見つかりませんでした`,
+                }
+              : { icon: Users, title: "スタッフがいません", description: "従業員は /register から登録します" }
+          }
           renderCard={(s) => (
             <div
               className={cn(

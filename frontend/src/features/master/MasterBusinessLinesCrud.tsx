@@ -18,6 +18,8 @@ import {
 import { Pencil, Plus, Trash2, Loader2, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { DataList } from "@/components/ui/data-list";
+import { SearchInput } from "@/components/ui/search-input";
+import { useTextSearch } from "@/hooks/use-text-search";
 import {
   useBusinessLines,
   useCreateBusinessLine,
@@ -138,28 +140,41 @@ export default function MasterBusinessLinesCrud() {
   };
 
   const items = listQ.data?.items ?? [];
+  const { query, setQuery, results } = useTextSearch(items, (bl) => [bl.name]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">報告部門一覧 ({items.length}件)</CardTitle>
-        <Dialog open={formOpen} onOpenChange={setFormOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="h-8" onClick={openCreate}>
-              <Plus className="mr-1 h-3.5 w-3.5" />
-              新規作成
-            </Button>
-          </DialogTrigger>
-          <BusinessLineFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
-        </Dialog>
+      <CardHeader className="space-y-3 pb-2">
+        <div className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-sm font-medium">報告部門一覧 ({items.length}件)</CardTitle>
+          <Dialog open={formOpen} onOpenChange={setFormOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="h-8 shrink-0" onClick={openCreate}>
+                <Plus className="mr-1 h-3.5 w-3.5" />
+                新規作成
+              </Button>
+            </DialogTrigger>
+            <BusinessLineFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
+          </Dialog>
+        </div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="部門名で検索"
+          className="w-full sm:max-w-xs"
+        />
       </CardHeader>
       <CardContent className="p-3 md:p-0">
         <DataList
-          items={items}
+          items={results}
           isLoading={listQ.isLoading}
           error={listQ.isError ? listQ.error : undefined}
           getKey={(bl) => bl.id}
-          empty={{ icon: Layers, title: "報告部門がありません" }}
+          empty={{
+            icon: Layers,
+            title: query ? "該当する報告部門がありません" : "報告部門がありません",
+            description: query ? `「${query}」に一致する報告部門は見つかりませんでした` : undefined,
+          }}
           renderCard={(bl) => (
             <div className="flex items-center justify-between gap-2 rounded-xl border bg-card p-3">
               <div className="min-w-0">
