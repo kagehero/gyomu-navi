@@ -64,6 +64,10 @@ export function ShareDonutChart({
             </Pie>
             <Tooltip
               contentStyle={TOOLTIP_STYLE}
+              // Pin to the top of the chart so the tooltip never overlaps the
+              // 合計 label sitting in the center hole of the donut.
+              position={{ y: 0 }}
+              allowEscapeViewBox={{ y: true }}
               formatter={(value: number, name: string) => [
                 `${valueFormatter(value)}${unitSuffix} (${Math.round((value / total) * 100)}%)`,
                 name,

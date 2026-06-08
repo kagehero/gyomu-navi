@@ -226,13 +226,19 @@ function BusinessTypeFormDialog({
   );
 }
 
+const ALL = "_all_";
+
 export default function MasterBusinessTypesCrud() {
   const listQ = useBusinessTypes();
+  const clientsQ = useClients();
+  const sitesQ = useSites();
   const deleteM = useDeleteBusinessType();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BusinessType | null>(null);
   const [deleting, setDeleting] = useState<BusinessType | null>(null);
+  const [clientFilter, setClientFilter] = useState<string>(ALL);
+  const [siteFilter, setSiteFilter] = useState<string>(ALL);
 
   const openCreate = () => {
     setEditing(null);
@@ -254,18 +260,40 @@ export default function MasterBusinessTypesCrud() {
   };
 
   const items = listQ.data?.items ?? [];
-  const { query, setQuery, results } = useTextSearch(items, (b) => [
+  const clients = clientsQ.data?.items ?? [];
+
+  // When a client is selected, the 拠点 dropdown only offers that client's
+  // sites; "すべての顧客" exposes every site so the filter is still usable.
+  const filterSites = (sitesQ.data?.items ?? []).filter(
+    (s) => clientFilter === ALL || s.client_id === clientFilter,
+  );
+
+  const filtered = items.filter(
+    (b) =>
+      (clientFilter === ALL || b.client_id === clientFilter) &&
+      (siteFilter === ALL || b.site_id === siteFilter),
+  );
+
+  const { query, setQuery, results } = useTextSearch(filtered, (b) => [
     b.name,
     b.client_name,
     b.site_name,
     b.business_line_name,
   ]);
 
+  // Changing the client invalidates any site selection from another client.
+  const onClientFilterChange = (v: string) => {
+    setClientFilter(v);
+    setSiteFilter(ALL);
+  };
+
   return (
     <Card>
       <CardHeader className="space-y-3 pb-2">
         <div className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="text-sm font-medium">業務内容一覧 ({items.length}件)</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            業務内容一覧 ({results.length}/{items.length}件)
+          </CardTitle>
           <Dialog open={formOpen} onOpenChange={setFormOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="h-8 shrink-0" onClick={openCreate}>
@@ -280,12 +308,42 @@ export default function MasterBusinessTypesCrud() {
             />
           </Dialog>
         </div>
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          placeholder="業務名・顧客名・拠点・部門で検索"
-          className="w-full sm:max-w-sm"
-        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Select value={clientFilter} onValueChange={onClientFilterChange}>
+              <SelectTrigger className="h-9 w-full sm:w-44">
+                <SelectValue placeholder="顧客で絞り込み" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>すべての顧客</SelectItem>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={siteFilter} onValueChange={setSiteFilter}>
+              <SelectTrigger className="h-9 w-full sm:w-44">
+                <SelectValue placeholder="拠点で絞り込み" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>すべての拠点</SelectItem>
+                {filterSites.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="業務名・顧客名・拠点・部門で検索"
+            className="w-full sm:max-w-xs"
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-3 md:p-0">
         <DataList

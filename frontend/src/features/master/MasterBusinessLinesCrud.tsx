@@ -157,12 +157,14 @@ export default function MasterBusinessLinesCrud() {
             <BusinessLineFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
           </Dialog>
         </div>
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          placeholder="部門名で検索"
-          className="w-full sm:max-w-xs"
-        />
+        <div className="flex sm:justify-end">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="部門名で検索"
+            className="w-full sm:max-w-xs"
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-3 md:p-0">
         <DataList
