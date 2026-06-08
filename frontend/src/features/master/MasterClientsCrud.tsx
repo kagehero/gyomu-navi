@@ -352,17 +352,7 @@ export default function MasterClientsCrud() {
           </Dialog>
         </div>
 
-        <div className="space-y-1">
-          <Label className="text-xs">検索</Label>
-          <SearchInput
-            value={query}
-            onChange={setQuery}
-            placeholder="企業名・コードで検索"
-            className="w-full sm:max-w-xs"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             <Label className="text-xs">報告部門で絞り込み</Label>
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
@@ -383,12 +373,21 @@ export default function MasterClientsCrud() {
                 )}
               </SelectContent>
             </Select>
+            {departmentFilter !== ALL_DEPARTMENTS && (
+              <p className="text-xs text-muted-foreground">
+                表示中: {filterLabel} — {filteredClients.length}件
+              </p>
+            )}
           </div>
-          {departmentFilter !== ALL_DEPARTMENTS && (
-            <p className="text-xs text-muted-foreground sm:pt-5">
-              表示中: {filterLabel} — {filteredClients.length}件
-            </p>
-          )}
+          <div className="space-y-1">
+            <Label className="text-xs">検索</Label>
+            <SearchInput
+              value={query}
+              onChange={setQuery}
+              placeholder="企業名・コードで検索"
+              className="w-full sm:max-w-xs"
+            />
+          </div>
         </div>
       </CardHeader>
 

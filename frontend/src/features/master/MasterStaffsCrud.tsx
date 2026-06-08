@@ -438,12 +438,14 @@ export default function MasterStaffsCrud() {
             従業員は /register からログイン情報を登録します。承認待ち: {pendingCount}件
           </p>
         </div>
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          placeholder="氏名・メール・部門で検索"
-          className="w-full sm:max-w-xs"
-        />
+        <div className="flex sm:justify-end">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="氏名・メール・部門で検索"
+            className="w-full sm:max-w-xs"
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-3 md:p-0">
         <DataList

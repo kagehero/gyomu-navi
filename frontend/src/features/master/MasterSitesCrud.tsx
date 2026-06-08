@@ -184,13 +184,17 @@ function SiteFormDialog({
   );
 }
 
+const ALL = "_all_";
+
 export default function MasterSitesCrud() {
   const listQ = useSites();
+  const clientsQ = useClients();
   const deleteM = useDeleteSite();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Site | null>(null);
   const [deleting, setDeleting] = useState<Site | null>(null);
+  const [clientFilter, setClientFilter] = useState<string>(ALL);
 
   const openCreate = () => {
     setEditing(null);
@@ -212,7 +216,12 @@ export default function MasterSitesCrud() {
   };
 
   const items = listQ.data?.items ?? [];
-  const { query, setQuery, results } = useTextSearch(items, (s) => [
+  const clients = clientsQ.data?.items ?? [];
+  const byClient =
+    clientFilter === ALL
+      ? items
+      : items.filter((s) => s.client_id === clientFilter);
+  const { query, setQuery, results } = useTextSearch(byClient, (s) => [
     s.name,
     s.client_name,
   ]);
@@ -221,7 +230,9 @@ export default function MasterSitesCrud() {
     <Card>
       <CardHeader className="space-y-3 pb-2">
         <div className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="text-sm font-medium">拠点一覧 ({items.length}件)</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            拠点一覧 ({results.length}/{items.length}件)
+          </CardTitle>
           <Dialog open={formOpen} onOpenChange={setFormOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="h-8 shrink-0" onClick={openCreate}>
@@ -232,12 +243,27 @@ export default function MasterSitesCrud() {
             <SiteFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
           </Dialog>
         </div>
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          placeholder="拠点名・顧客名で検索"
-          className="w-full sm:max-w-xs"
-        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="h-9 w-full sm:w-48">
+              <SelectValue placeholder="顧客で絞り込み" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>すべての顧客</SelectItem>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="拠点名・顧客名で検索"
+            className="w-full sm:max-w-xs"
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-3 md:p-0">
         <DataList
