@@ -5,12 +5,15 @@ import {
   ClipboardList,
   Clock,
   MessageSquare,
-  Settings,
   Building2,
   LogOut,
   BarChart3,
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
+import { useState } from "react";
 import { NavLink } from "@/components/layout/NavLink";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/useAuth";
 import { Button } from "@/components/ui/button";
@@ -47,8 +50,24 @@ const mainItems: NavItem[] = [
 
 const adminItems = [
   { title: "マスタ管理", url: "/master", icon: Building2 },
-  { title: "設定", url: "/settings", icon: Settings },
 ];
+
+const ROLE_LABELS = {
+  admin: "管理者",
+  manager: "マネージャー",
+  employee: "従業員",
+} as const;
+
+/** Best-effort display name: explicit name → email local-part → "ユーザー". */
+function resolveName(
+  user: { displayName?: string | null; email?: string | null } | null,
+): string {
+  if (!user) return "ユーザー";
+  const name = user.displayName?.trim();
+  if (name) return name;
+  const local = user.email?.split("@")[0];
+  return local || "ユーザー";
+}
 
 function displayInitial(name: string) {
   const t = name.trim();
@@ -62,6 +81,21 @@ export function AppSidebar() {
   const { dashboardOnly } = useReleaseMode();
   const router = useRouter();
   const collapsed = state === "collapsed";
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      toast.success("ログアウトしました");
+      router.replace("/login");
+    } catch {
+      toast.error("ログアウトに失敗しました");
+      setLoggingOut(false);
+    }
+  };
+
   const mainNav = dashboardOnly
     ? mainItems.filter((i) => i.url === "/")
     : mainItems.filter(
@@ -145,43 +179,75 @@ export function AppSidebar() {
 
       <SidebarFooter className="space-y-2 border-t border-sidebar-border px-2 py-3">
         {collapsed ? (
-          <div className="flex justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary/20 text-xs font-medium text-sidebar-primary">
-              {user ? displayInitial(user.displayName || user.email) : "?"}
-            </div>
+          <div className="flex flex-col items-center gap-2">
+            <Link
+              href="/profile"
+              title={`${resolveName(user)}（プロフィール）`}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary/20 text-xs font-semibold text-sidebar-primary ring-1 ring-sidebar-border transition-colors hover:bg-sidebar-primary/30"
+            >
+              {displayInitial(resolveName(user))}
+            </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-sidebar-foreground/60 hover:bg-destructive/10 hover:text-destructive"
+              aria-label="ログアウト"
+              title="ログアウト"
+              disabled={loggingOut}
+              onClick={handleLogout}
+            >
+              {loggingOut ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4" />
+              )}
+            </Button>
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 px-1">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20 text-xs font-medium text-sidebar-primary">
-                {user ? displayInitial(user.displayName || user.email) : "?"}
+            <Link
+              href="/profile"
+              title="プロフィール"
+              className="group flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-sidebar-accent"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20 text-sm font-semibold text-sidebar-primary ring-1 ring-sidebar-border">
+                {displayInitial(resolveName(user))}
               </div>
               <div className="flex min-w-0 flex-col">
-                <span className="truncate text-xs font-medium text-sidebar-foreground">
-                  {user?.displayName || "—"}
+                <span className="flex items-center gap-1.5 text-xs font-medium text-sidebar-foreground">
+                  <span className="truncate">{resolveName(user)}</span>
+                  {user && (
+                    <span className="shrink-0 rounded bg-sidebar-primary/15 px-1.5 py-0.5 text-[9px] font-medium leading-none text-sidebar-primary">
+                      {ROLE_LABELS[user.role]}
+                    </span>
+                  )}
                 </span>
                 <span className="truncate text-[10px] text-sidebar-foreground/50">
                   {user?.email}
                 </span>
               </div>
-            </div>
+              <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-sidebar-foreground/30 transition-colors group-hover:text-sidebar-foreground/60" />
+            </Link>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="h-8 w-full justify-start gap-2 text-xs"
-              onClick={async () => {
-                try {
-                  await logout();
-                  toast.success("ログアウトしました");
-                  router.replace("/login");
-                } catch {
-                  toast.error("ログアウトに失敗しました");
-                }
-              }}
+              className="h-9 w-full justify-center gap-2 text-xs font-medium text-sidebar-foreground/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+              disabled={loggingOut}
+              onClick={handleLogout}
             >
-              <LogOut className="h-3.5 w-3.5" />
-              ログアウト
+              {loggingOut ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  ログアウト中…
+                </>
+              ) : (
+                <>
+                  <LogOut className="h-4 w-4" />
+                  ログアウト
+                </>
+              )}
             </Button>
           </>
         )}

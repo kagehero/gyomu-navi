@@ -1,6 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
+import * as bcrypt from "bcrypt";
 import {
   visibleBusinessLineIds,
   visibleClientIdsForLine,
@@ -8,11 +13,14 @@ import {
 } from "../lib/reports/scoping";
 import type { AuthedUser } from "../auth/types";
 import type {
+  ChangePasswordDto,
   MeBusinessTypesQueryDto,
   MeClientsQueryDto,
   MeSitesQueryDto,
   MeVehiclesQueryDto,
 } from "./dto";
+
+const BCRYPT_SALT_ROUNDS = 10;
 
 /**
  * Port of Phase1 `/api/me/*` endpoints — per-user filtered views for the
@@ -225,5 +233,38 @@ export class MeService {
       [q.client_id],
     );
     return { items };
+  }
+
+  /**
+   * Self-service password change for any logged-in user. Verifies the
+   * supplied current password against the stored hash before writing the
+   * new one, so a stolen session alone can't silently rotate credentials.
+   */
+  async changePassword(user: AuthedUser, body: ChangePasswordDto) {
+    const rows = await this.ds.query(
+      `SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [user.id],
+    );
+    const row = rows[0] as { password_hash: string } | undefined;
+    if (!row) {
+      throw new UnauthorizedException("ユーザーが見つかりません");
+    }
+
+    const ok = await bcrypt.compare(body.current_password, row.password_hash);
+    if (!ok) {
+      throw new BadRequestException("現在のパスワードが正しくありません");
+    }
+
+    const samePassword = await bcrypt.compare(body.new_password, row.password_hash);
+    if (samePassword) {
+      throw new BadRequestException("新しいパスワードは現在のパスワードと異なるものにしてください");
+    }
+
+    const newHash = await bcrypt.hash(body.new_password, BCRYPT_SALT_ROUNDS);
+    await this.ds.query(
+      `UPDATE users SET password_hash = $1 WHERE id = $2 AND deleted_at IS NULL`,
+      [newHash, user.id],
+    );
+    return { ok: true };
   }
 }

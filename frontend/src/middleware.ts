@@ -28,7 +28,7 @@ export const config = {
     "/attendance/:path*",
     "/notices/:path*",
     "/master/:path*",
-    "/settings/:path*",
+    "/profile/:path*",
     "/login",
     "/register",
   ],
