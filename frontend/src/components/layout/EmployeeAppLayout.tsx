@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { LogOut } from "lucide-react";
+import { useMemo, useState } from "react";
+import { LogOut, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
@@ -13,13 +14,26 @@ const TITLES: { prefix: string; title: string }[] = [
   { prefix: "/attendance", title: "勤怠" },
   { prefix: "/notices", title: "連絡・掲示板" },
   { prefix: "/master", title: "マスタ" },
-  { prefix: "/settings", title: "設定" },
 ];
 
 export function EmployeeAppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      toast.success("ログアウトしました");
+      router.replace("/login");
+    } catch {
+      toast.error("ログアウトに失敗しました");
+      setLoggingOut(false);
+    }
+  };
 
   const title = useMemo(() => {
     const p = pathname ?? "/";
@@ -43,28 +57,29 @@ export function EmployeeAppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-tight">{title}</p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                {user?.displayName ?? "—"} · 従業員
-              </p>
+              <Link
+                href="/profile"
+                className="block truncate text-[10px] text-muted-foreground hover:text-foreground hover:underline"
+              >
+                {(user?.displayName?.trim() || user?.email?.split("@")[0]) ?? "—"} · 従業員
+              </Link>
             </div>
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="h-9 w-9 shrink-0"
+            className="h-9 w-9 shrink-0 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             aria-label="ログアウト"
-            onClick={async () => {
-              try {
-                await logout();
-                toast.success("ログアウトしました");
-                router.replace("/login");
-              } catch {
-                toast.error("ログアウトに失敗しました");
-              }
-            }}
+            title="ログアウト"
+            disabled={loggingOut}
+            onClick={handleLogout}
           >
-            <LogOut className="h-4 w-4" />
+            {loggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
           </Button>
         </header>
 

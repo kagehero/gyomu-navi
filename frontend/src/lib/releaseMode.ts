@@ -12,5 +12,4 @@ export const DASHBOARD_ONLY_HIDDEN_PREFIXES = [
   "/attendance",
   "/notices",
   "/master",
-  "/settings",
 ] as const;
