@@ -6,7 +6,7 @@ import { MigrationInterface, QueryRunner } from "typeorm";
  * Concatenates and runs the Phase1 SQL migration set in order.
  *
  * This is the "lift-and-shift" bootstrap: we re-apply every migration from
- * `src/lib/db/migrations/00{1..8}_*.sql` (relative to the Phase1 monorepo
+ * `frontend/src/lib/db/migrations/00{1..8}_*.sql` (relative to the monorepo
  * root) as one transactional unit. After this runs, the RDS schema is
  * identical to what Phase1 had on Neon.
  *
@@ -15,14 +15,17 @@ import { MigrationInterface, QueryRunner } from "typeorm";
  */
 export class Bootstrap1700000000001 implements MigrationInterface {
   /**
-   * Path to the Phase1 monorepo migrations directory, relative to this file.
+   * Path to the Phase1 SQL migrations, lifted from `frontend/src/lib/db/migrations`.
    * Override via `PHASE1_MIGRATIONS_DIR` if the backend is deployed without
-   * the Phase1 sibling tree (e.g. a Docker image that ships only `backend/`).
+   * the sibling frontend tree (e.g. a Docker image that ships only `backend/`).
+   *
+   * Path is computed from this file's location:
+   *   backend/src/database/migrations/ → ../../../../frontend/src/lib/db/migrations
    */
   private get migrationsDir(): string {
     return (
       process.env.PHASE1_MIGRATIONS_DIR ??
-      join(__dirname, "..", "..", "..", "..", "src", "lib", "db", "migrations")
+      join(__dirname, "..", "..", "..", "..", "frontend", "src", "lib", "db", "migrations")
     );
   }
 
@@ -38,12 +41,30 @@ export class Bootstrap1700000000001 implements MigrationInterface {
   ];
 
   async up(qr: QueryRunner): Promise<void> {
+    // Some deployments already applied 001–008 through the Phase1 file-ledger
+    // migrator (frontend `db:migrate`, tracked in `schema_migrations`). On those
+    // DBs re-running this DDL is at best redundant and at worst fails — the
+    // CREATE UNIQUE INDEX statements aren't guarded by IF NOT EXISTS against
+    // pre-existing *data* that legitimately violates an early, since-superseded
+    // constraint. If the schema is already present, record this migration as
+    // applied without re-running it.
+    if (await this.alreadyApplied(qr)) {
+      return;
+    }
     for (const f of this.files) {
       const sql = readFileSync(join(this.migrationsDir, f), "utf-8");
       // queryRunner.query handles multi-statement SQL when the driver supports
       // it (pg does). We do NOT split on `;` ourselves — trigger bodies break.
       await qr.query(sql);
     }
+  }
+
+  /** True if 001–008 schema is already in place (sentinel: notices table). */
+  private async alreadyApplied(qr: QueryRunner): Promise<boolean> {
+    const rows: Array<{ t: string | null }> = await qr.query(
+      `SELECT to_regclass('public.notices') AS t`,
+    );
+    return rows[0]?.t != null;
   }
 
   async down(): Promise<void> {

@@ -6,7 +6,7 @@ import { join } from "node:path";
  * NestJS runtime DataSource factory.
  *
  * Important: `synchronize` is **false**. Schema lives in raw SQL migrations
- * lifted from `../src/lib/db/migrations/*.sql` of the Phase1 monorepo —
+ * lifted from `frontend/src/lib/db/migrations/*.sql` of the monorepo —
  * partial unique indexes, CHECK constraints, triggers, and the role/FK
  * consistency CHECK are not faithfully reproduced by `synchronize`.
  *

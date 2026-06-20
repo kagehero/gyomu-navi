@@ -1,14 +1,19 @@
 import "reflect-metadata";
 import { config as loadEnv } from "dotenv";
 import { DataSource } from "typeorm";
+import { registerPgTypeParsers } from "./src/database/pg-type-parsers";
 
 loadEnv();
+
+// Keep numeric/float8/int8 as JS numbers here too, so migration/seed scripts
+// run against the same type coercion as the NestJS runtime (see main.ts).
+registerPgTypeParsers();
 
 /**
  * Standalone DataSource for the `npm run migration:*` scripts.
  *
  * Migration files are the raw SQL lifted verbatim from the Phase1 repo at
- * `../src/lib/db/migrations/*.sql`. We rewrap them as TypeORM migration
+ * `frontend/src/lib/db/migrations/*.sql`. We rewrap them as TypeORM migration
  * classes during the cutover so the migration tracking table works, but
  * the SQL itself is unchanged.
  */

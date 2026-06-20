@@ -14,9 +14,11 @@
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "typeorm-ts-node-esm -d ormconfig.ts",
+    "typeorm": "typeorm-ts-node-commonjs -d ormconfig.ts",
     "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert"
+    "migration:revert": "npm run typeorm -- migration:revert",
+    "seed:admin": "ts-node -r tsconfig-paths/register src/database/seed-admin.ts",
+    "import:sales": "ts-node -r tsconfig-paths/register src/database/import-sales-catalog.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.658.0",
