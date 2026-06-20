@@ -194,6 +194,64 @@ export class StaffsService {
     }
   }
 
+  /**
+   * Bulk-approve employee logins (顧客要望: 一名ずつの承認は手間がかかる).
+   *
+   * Approval has the same prerequisites as the single-staff path: a department,
+   * at least one assigned client, and at least one assigned business line. We
+   * approve only the rows that already satisfy them and report the rest as
+   * `skipped` with a reason, so the admin can tell which still need setup
+   * rather than the whole batch failing. The whole pass runs in one
+   * transaction.
+   */
+  async bulkApprove(ids: string[]) {
+    const approved: string[] = [];
+    const skipped: Array<{ id: string; reason: string }> = [];
+
+    const qr = this.ds.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      for (const id of ids) {
+        const state = await this.loadApprovalState(qr, id);
+        if (!state) {
+          skipped.push({ id, reason: "対象が見つかりません" });
+          continue;
+        }
+        if (state.login_approved_at) {
+          skipped.push({ id, reason: "すでに承認済みです" });
+          continue;
+        }
+        if (!state.department_id) {
+          skipped.push({ id, reason: "社内部門が未設定です" });
+          continue;
+        }
+        if (Number(state.client_count) < 1) {
+          skipped.push({ id, reason: "担当顧客が未設定です" });
+          continue;
+        }
+        if (Number(state.business_line_count) < 1) {
+          skipped.push({ id, reason: "担当部門が未設定です" });
+          continue;
+        }
+        await qr.query(
+          `UPDATE users SET login_approved_at = now()
+            WHERE staff_id = $1 AND app_role = 'employee' AND deleted_at IS NULL`,
+          [id],
+        );
+        approved.push(id);
+      }
+      await qr.commitTransaction();
+    } catch (err) {
+      if (qr.isTransactionActive) await qr.rollbackTransaction();
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
+    return { approved, skipped };
+  }
+
   async softDelete(id: string) {
     const qr = this.ds.createQueryRunner();
     await qr.connect();

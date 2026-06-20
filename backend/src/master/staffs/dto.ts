@@ -57,3 +57,9 @@ export class PatchStaffDto {
   @IsOptional() @IsBoolean()
   approve?: boolean;
 }
+
+/** Bulk-approve a set of pending employee logins by staff id. */
+export class BulkApproveStaffDto {
+  @IsArray() @ArrayMinSize(1) @IsUUID(undefined, { each: true })
+  ids!: string[];
+}

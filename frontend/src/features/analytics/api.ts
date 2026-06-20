@@ -11,7 +11,20 @@ export type AggregationRow = {
   revenue_incl: number | null;
   dimension_id?: string;
   dimension_name?: string;
+  worked_hours?: number | null;
+  count_per_hour?: number | null;
+  revenue_excl_per_hour?: number | null;
+  dispatch_labor_cost?: number | null;
+  profit_excl?: number | null;
 };
+
+export type SortKey =
+  | "total_count"
+  | "revenue_excl"
+  | "report_count"
+  | "count_per_hour"
+  | "revenue_excl_per_hour"
+  | "dimension_name";
 
 export type AnalyticsRangeParams = {
   date?: string;
@@ -20,6 +33,8 @@ export type AnalyticsRangeParams = {
   staff_id?: string;
   client_id?: string;
   site_id?: string;
+  sort_by?: SortKey;
+  sort_dir?: "asc" | "desc";
 };
 
 export type DashboardData = {
@@ -95,8 +110,25 @@ export function useSiteAnalytics(params: AnalyticsRangeParams = {}, enabled = tr
   return useAnalyticsQuery("by-site", "/api/analytics/by-site", params, enabled);
 }
 
+export function useBusinessLineAnalytics(params: AnalyticsRangeParams = {}, enabled = true) {
+  return useAnalyticsQuery(
+    "by-business-line",
+    "/api/analytics/by-business-line",
+    params,
+    enabled,
+  );
+}
+
 export type CsvExportParams = AnalyticsRangeParams & {
-  group_by?: "detail" | "daily" | "weekly" | "monthly" | "client" | "staff" | "site";
+  group_by?:
+    | "detail"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "client"
+    | "staff"
+    | "site"
+    | "business_line";
 };
 
 export async function downloadReportsCsv(params: CsvExportParams): Promise<void> {

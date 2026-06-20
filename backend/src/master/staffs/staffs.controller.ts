@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { AdminGuard } from "../../auth/admin.guard";
 import { JwtAuthGuard } from "../../auth/jwt-auth.guard";
-import { CreateStaffDto, PatchStaffDto } from "./dto";
+import { BulkApproveStaffDto, CreateStaffDto, PatchStaffDto } from "./dto";
 import { StaffsService } from "./staffs.service";
 
 @Controller("master/staffs")
@@ -30,6 +30,11 @@ export class StaffsController {
   @Post()
   create(@Body() _body: CreateStaffDto) {
     return this.svc.rejectCreate();
+  }
+
+  @Post("bulk-approve")
+  bulkApprove(@Body() body: BulkApproveStaffDto) {
+    return this.svc.bulkApprove(body.ids);
   }
 
   @Patch(":id")

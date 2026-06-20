@@ -93,6 +93,19 @@ export async function apiPatch<T>(path: string, body: object): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export async function apiPut<T>(path: string, body: object): Promise<T> {
+  const res = await safeFetch(apiUrl(path), {
+    method: "PUT",
+    headers: jsonHeaders,
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(await parseApiError(res));
+  }
+  return res.json() as Promise<T>;
+}
+
 export async function apiDelete<T = { ok: true }>(path: string): Promise<T> {
   const res = await safeFetch(apiUrl(path), {
     method: "DELETE",

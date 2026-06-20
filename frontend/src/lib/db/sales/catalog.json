@@ -1034,7 +1034,7 @@
     {
       "business_line": "カーシェア",
       "client": "株式会社ホンダモビリティ近畿",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "エブリゴー車両メンテナンス・清掃業務一式",
       "unit_price_excl": 2100,
       "unit_price_incl": 2310,
@@ -1051,7 +1051,7 @@
     {
       "business_line": "カーシェア",
       "client": "株式会社ホンダモビリティ近畿",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "エブリゴー車両除菌業務",
       "unit_price_excl": 300,
       "unit_price_incl": 330,
@@ -1068,7 +1068,7 @@
     {
       "business_line": "カーシェア",
       "client": "株式会社ホンダモビリティ近畿",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "エブリゴー車両給油代行業務",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -1085,7 +1085,7 @@
     {
       "business_line": "カーシェア",
       "client": "株式会社ホンダモビリティ近畿",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "緊急対応業務（48時間以内対応）",
       "unit_price_excl": 5000,
       "unit_price_incl": 5500,
@@ -1107,7 +1107,7 @@
     {
       "business_line": "カーシェア",
       "client": "株式会社ホンダモビリティ近畿",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "緊急対応業務（72時間以内対応）",
       "unit_price_excl": 4000,
       "unit_price_incl": 4400,
@@ -1129,7 +1129,7 @@
     {
       "business_line": "カーシェア",
       "client": "株式会社ホンダモビリティ近畿",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "長期休暇中緊急対応業務基本料金",
       "unit_price_excl": 13000,
       "unit_price_incl": 14300.000000000002,
@@ -1151,7 +1151,7 @@
     {
       "business_line": "カーシェア",
       "client": "アースカー",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "アース・カー車両メンテナンス・清掃業務一式",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -1168,7 +1168,7 @@
     {
       "business_line": "カーシェア",
       "client": "アースカー",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "アース・カー車両給油代行業務",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -1185,7 +1185,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "23区内巡回清掃及び点検業務",
       "unit_price_excl": 2700,
       "unit_price_incl": 2970.0000000000005,
@@ -1202,7 +1202,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "給油代行業務",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -1219,7 +1219,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "緊急対応業務（6時間以内対応/東京23区）",
       "unit_price_excl": 21000,
       "unit_price_incl": 23100.000000000004,
@@ -1236,7 +1236,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "緊急対応業務（12時間以内対応/東京23区）",
       "unit_price_excl": 13000,
       "unit_price_incl": 14300.000000000002,
@@ -1253,7 +1253,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "緊急対応業務（24時間以内対応/東京23区）",
       "unit_price_excl": 7000,
       "unit_price_incl": 7700.000000000001,
@@ -1270,7 +1270,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "緊急対応業務（48時間以内対応/東京23区）",
       "unit_price_excl": 5000,
       "unit_price_incl": 5500,
@@ -1287,7 +1287,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "傷コンパウンド処理（クレジットカードサイズ以上）",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -1304,7 +1304,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "傷コンパウンド処理（クレジットカードサイズ以下）",
       "unit_price_excl": 750,
       "unit_price_incl": 825.0000000000001,
@@ -1321,7 +1321,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "水垢除去（車両両サイド実施）",
       "unit_price_excl": 1200,
       "unit_price_incl": 1320,
@@ -1338,7 +1338,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "水垢除去（ナンバープレート）",
       "unit_price_excl": 600,
       "unit_price_incl": 660,
@@ -1355,7 +1355,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "バッテリージャンピング",
       "unit_price_excl": 1150,
       "unit_price_incl": 1265,
@@ -1372,7 +1372,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "バッテリー充電走行（10km)",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -1389,7 +1389,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "車内消臭業務（消臭剤代含む）",
       "unit_price_excl": 4800,
       "unit_price_incl": 5280,
@@ -1406,7 +1406,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "パンク対応業務",
       "unit_price_excl": 10000,
       "unit_price_incl": 11000,
@@ -1423,7 +1423,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "車載器交換業務",
       "unit_price_excl": 2300,
       "unit_price_incl": 2530,
@@ -1440,7 +1440,7 @@
     {
       "business_line": "カーシェア",
       "client": "橋田佳明",
-      "branch": "旧横浜",
+      "branch": null,
       "task": "バッテリー交換業務",
       "unit_price_excl": 2300,
       "unit_price_incl": 2530,
@@ -1916,7 +1916,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "カーシェア車両内外装清掃及び点検業務",
       "unit_price_excl": 2200,
       "unit_price_incl": 2420,
@@ -1933,7 +1933,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "カーシェア車両内外装清掃業務",
       "unit_price_excl": 1800,
       "unit_price_incl": 1980.0000000000002,
@@ -1950,7 +1950,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "給油代行業務",
       "unit_price_excl": 2200,
       "unit_price_incl": 2420,
@@ -1967,7 +1967,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "タイヤ空気圧充填業務",
       "unit_price_excl": 100,
       "unit_price_incl": 110.00000000000001,
@@ -1984,7 +1984,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "オイル補充業務",
       "unit_price_excl": 1200,
       "unit_price_incl": 1320,
@@ -2001,7 +2001,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "拾得物回収及び管理業務（発送）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2018,7 +2018,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "拾得物回収及び管理業務（警察届）",
       "unit_price_excl": 10000,
       "unit_price_incl": 11000,
@@ -2035,7 +2035,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "コンパウンド処理業務（文庫本サイズ以上）",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -2052,7 +2052,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "コンパウンド処理業務（クレジットカード以上文庫本未満）",
       "unit_price_excl": 750,
       "unit_price_incl": 825.0000000000001,
@@ -2069,7 +2069,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "コンパウンド処理業務（500円玉以上クレジットカード未満）",
       "unit_price_excl": 500,
       "unit_price_incl": 550,
@@ -2086,7 +2086,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "タッチペン処理業務（文庫本サイズ以上）",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -2103,7 +2103,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "タッチペン処理業務（クレジットカード以上文庫本未満）",
       "unit_price_excl": 750,
       "unit_price_incl": 825.0000000000001,
@@ -2120,7 +2120,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "タッチペン処理業務（500円玉以上クレジットカード未満）",
       "unit_price_excl": 500,
       "unit_price_incl": 550,
@@ -2137,7 +2137,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッテリージャンピング業務",
       "unit_price_excl": 1150,
       "unit_price_incl": 1265,
@@ -2154,7 +2154,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッテリー充電走行（10km)",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -2171,7 +2171,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "フロント車幅灯交換業務",
       "unit_price_excl": 500,
       "unit_price_incl": 550,
@@ -2188,7 +2188,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "フロントウィンカー交換業務",
       "unit_price_excl": 500,
       "unit_price_incl": 550,
@@ -2205,7 +2205,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "ヘッドライト交換業務",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -2222,7 +2222,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "リア尾灯電球交換業務",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -2239,7 +2239,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "リアウィンカー交換業務",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -2256,7 +2256,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "ブレーキ灯交換業務",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -2273,7 +2273,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッグランプ交換業務",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -2290,7 +2290,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "給油口レバー交換業務",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -2307,7 +2307,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "ハッチバックのドアが開かないことへの対応",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -2324,7 +2324,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "タイヤ空気圧充填業務",
       "unit_price_excl": 100,
       "unit_price_incl": 110.00000000000001,
@@ -2341,7 +2341,7 @@
     {
       "business_line": "カーシェア",
       "client": "バリュートープ",
-      "branch": "eemo",
+      "branch": null,
       "task": "GPSトラッカー取付業務",
       "unit_price_excl": 500,
       "unit_price_incl": 550,
@@ -2358,7 +2358,7 @@
     {
       "business_line": "カーシェア",
       "client": "フードスター",
-      "branch": "eemo",
+      "branch": null,
       "task": "23区内巡回清掃及び点検業務",
       "unit_price_excl": 2970,
       "unit_price_incl": 3267.0000000000005,
@@ -2375,7 +2375,7 @@
     {
       "business_line": "カーシェア",
       "client": "スマートバリュー",
-      "branch": "eemo",
+      "branch": null,
       "task": "巡回清掃及び点検業務（恵比寿）",
       "unit_price_excl": 2300,
       "unit_price_incl": 2530,
@@ -2392,7 +2392,7 @@
     {
       "business_line": "カーシェア",
       "client": "スマートバリュー",
-      "branch": "eemo",
+      "branch": null,
       "task": "巡回清掃及び点検業務（水天宮/錦糸町/目黒）",
       "unit_price_excl": 3500,
       "unit_price_incl": 3850.0000000000005,
@@ -2409,7 +2409,7 @@
     {
       "business_line": "カーシェア",
       "client": "スマートバリュー",
-      "branch": "eemo",
+      "branch": null,
       "task": "タイヤワックス塗布",
       "unit_price_excl": 300,
       "unit_price_incl": 330,
@@ -2426,7 +2426,7 @@
     {
       "business_line": "カーシェア",
       "client": "スマートバリュー",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッテリー充電走行業務",
       "unit_price_excl": 2600,
       "unit_price_incl": 2860.0000000000005,
@@ -2443,7 +2443,7 @@
     {
       "business_line": "カーシェア",
       "client": "スマートバリュー",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッテリージャンピング業務",
       "unit_price_excl": 6000,
       "unit_price_incl": 6600.000000000001,
@@ -2460,7 +2460,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "巡回清掃及び点検業務",
       "unit_price_excl": 2600,
       "unit_price_incl": 2860.0000000000005,
@@ -2477,7 +2477,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "タイヤワックス塗布",
       "unit_price_excl": 300,
       "unit_price_incl": 330,
@@ -2494,7 +2494,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "回収済み忘れ物管理業務（事業者様送付）",
       "unit_price_excl": 10000,
       "unit_price_incl": 11000,
@@ -2511,7 +2511,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "コンパウンド処理（クレジットカードサイズ以上）",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -2528,7 +2528,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "コンパウンド処理（クレジットカードサイズ以下）",
       "unit_price_excl": 750,
       "unit_price_incl": 825.0000000000001,
@@ -2545,7 +2545,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "水垢除去（車両両サイド実施）",
       "unit_price_excl": 1200,
       "unit_price_incl": 1320,
@@ -2562,7 +2562,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "水垢除去（ナンバープレート）",
       "unit_price_excl": 600,
       "unit_price_incl": 660,
@@ -2579,7 +2579,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "緊急対応業務（24時間以内対応/別シート参照）",
       "unit_price_excl": 8000,
       "unit_price_incl": 8800,
@@ -2596,7 +2596,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "緊急対応業務（48時間以内対応/別シート参照）",
       "unit_price_excl": 5000,
       "unit_price_incl": 5500,
@@ -2613,7 +2613,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "緊急対応業務（72時間以内対応/別シート参照）",
       "unit_price_excl": 4000,
       "unit_price_incl": 4400,
@@ -2630,7 +2630,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッテリージャンピング",
       "unit_price_excl": 1150,
       "unit_price_incl": 1265,
@@ -2647,7 +2647,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "バッテリー充電走行（10km)",
       "unit_price_excl": 2300,
       "unit_price_incl": 2530,
@@ -2664,7 +2664,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "車内消臭業務",
       "unit_price_excl": 4800,
       "unit_price_incl": 5280,
@@ -2681,7 +2681,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "パンク対応業務",
       "unit_price_excl": 10000,
       "unit_price_incl": 11000,
@@ -2698,7 +2698,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "新規ステーション開設業務",
       "unit_price_excl": 4000,
       "unit_price_incl": 4400,
@@ -2715,7 +2715,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "閉鎖ステーション撤去業務",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -2732,7 +2732,7 @@
     {
       "business_line": "カーシェア",
       "client": "大豊産業",
-      "branch": "eemo",
+      "branch": null,
       "task": "車両商品化業務",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -2749,7 +2749,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "巡回清掃及び点検業務",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -2766,7 +2766,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "車内除菌業務",
       "unit_price_excl": 200,
       "unit_price_incl": 220.00000000000003,
@@ -2783,7 +2783,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "車載除菌水定額パック（弱酸性次亜塩素酸除菌水/100ppm）",
       "unit_price_excl": 750,
       "unit_price_incl": 825.0000000000001,
@@ -2800,7 +2800,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "バッテリージャンピング",
       "unit_price_excl": 1150,
       "unit_price_incl": 1265,
@@ -2817,7 +2817,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "バッテリーあがり防止走行(10㎞）",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -2834,7 +2834,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "給油代行業務",
       "unit_price_excl": 2500,
       "unit_price_incl": 2750,
@@ -2851,7 +2851,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "空気圧充填業務",
       "unit_price_excl": 100,
       "unit_price_incl": 110.00000000000001,
@@ -2868,7 +2868,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(与野）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2885,7 +2885,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(さいたま市南区）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2902,7 +2902,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(さいたま市見沼区）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2919,7 +2919,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(草加市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2936,7 +2936,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(秦野市）",
       "unit_price_excl": 4800,
       "unit_price_incl": 5280,
@@ -2953,7 +2953,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(大和市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2970,7 +2970,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(鎌倉市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -2987,7 +2987,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(海老名市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3004,7 +3004,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(座間市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3021,7 +3021,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(藤沢市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3038,7 +3038,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(相模原市）",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3055,7 +3055,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(千葉県）",
       "unit_price_excl": 2800,
       "unit_price_incl": 3080.0000000000005,
@@ -3072,7 +3072,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(昭島市）",
       "unit_price_excl": 4400,
       "unit_price_incl": 4840,
@@ -3089,7 +3089,7 @@
     {
       "business_line": "カーシェア",
       "client": "エネクスライフサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用(町田市）",
       "unit_price_excl": 1500,
       "unit_price_incl": 1650.0000000000002,
@@ -3106,7 +3106,7 @@
     {
       "business_line": "カーシェア",
       "client": "トヨタレンタリース大阪",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "巡回清掃及び点検業務(週1回実施/備品確認)",
       "unit_price_excl": 2150,
       "unit_price_incl": 2365,
@@ -3123,7 +3123,7 @@
     {
       "business_line": "カーシェア",
       "client": "トヨタレンタリース大阪",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "給油代行業務",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3140,7 +3140,7 @@
     {
       "business_line": "カーシェア",
       "client": "タイムズサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "定期巡回業務（フル）",
       "unit_price_excl": 1560,
       "unit_price_incl": 1716.0000000000002,
@@ -3157,7 +3157,7 @@
     {
       "business_line": "カーシェア",
       "client": "タイムズサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "定期巡回業務（基本）",
       "unit_price_excl": 1560,
       "unit_price_incl": 1716.0000000000002,
@@ -3174,7 +3174,7 @@
     {
       "business_line": "カーシェア",
       "client": "タイムズサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "定期巡回業務（フル/機械式）",
       "unit_price_excl": 2410,
       "unit_price_incl": 2651,
@@ -3191,7 +3191,7 @@
     {
       "business_line": "カーシェア",
       "client": "タイムズサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "定期巡回業務（基本/機械式）",
       "unit_price_excl": 2410,
       "unit_price_incl": 2651,
@@ -3208,7 +3208,7 @@
     {
       "business_line": "カーシェア",
       "client": "タイムズサービス",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "遠方追加費用（下田地区）",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -3225,7 +3225,7 @@
     {
       "business_line": "カーシェア",
       "client": "タイムスモビリティ",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "定期巡回業務",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3242,7 +3242,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "内外装清掃及び点検業務（二週に一度）",
       "unit_price_excl": 2700,
       "unit_price_incl": 2970.0000000000005,
@@ -3259,7 +3259,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "巡回業務実施時の別ステーションへの追加駆け付け対応業務",
       "unit_price_excl": 2000,
       "unit_price_incl": 2200,
@@ -3276,7 +3276,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "スマートキー電池交換追加作業費",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -3293,7 +3293,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "給油代行業務",
       "unit_price_excl": 2700,
       "unit_price_incl": 2970.0000000000005,
@@ -3310,7 +3310,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "バッテリージャンピング対応",
       "unit_price_excl": 1150,
       "unit_price_incl": 1265,
@@ -3327,7 +3327,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "バッテリー充電走行（10km)",
       "unit_price_excl": 2300,
       "unit_price_incl": 2530,
@@ -3344,7 +3344,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "車両移動業務",
       "unit_price_excl": 2700,
       "unit_price_incl": 2970.0000000000005,
@@ -3361,7 +3361,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "回収済み忘れ物管理業務（警察署届）",
       "unit_price_excl": 10000,
       "unit_price_incl": 11000,
@@ -3378,7 +3378,7 @@
     {
       "business_line": "カーシェア",
       "client": "SMAサポート（UPR）",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "オイル補充業務",
       "unit_price_excl": 2200,
       "unit_price_incl": 2420,
@@ -3395,7 +3395,7 @@
     {
       "business_line": "カーシェア",
       "client": "アゲハ",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "23区内巡回清掃及び点検業務",
       "unit_price_excl": 2970,
       "unit_price_incl": 3267.0000000000005,
@@ -3412,7 +3412,7 @@
     {
       "business_line": "カーシェア",
       "client": "ヒョンデ",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "巡回清掃及び点検業務/MOCEAN",
       "unit_price_excl": 2300,
       "unit_price_incl": 2530,
@@ -3429,7 +3429,7 @@
     {
       "business_line": "カーシェア",
       "client": "ヒョンデ",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "タイヤワックス塗布",
       "unit_price_excl": 300,
       "unit_price_incl": 330,
@@ -3446,7 +3446,7 @@
     {
       "business_line": "カーシェア",
       "client": "ヒョンデ",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "空気圧充填業務（コンプレッサー使用）",
       "unit_price_excl": 100,
       "unit_price_incl": 110.00000000000001,
@@ -3465,7 +3465,7 @@
     {
       "business_line": "カーシェア",
       "client": "ヒョンデ",
-      "branch": "スカイモビリティ",
+      "branch": null,
       "task": "車内残置物回収及び発送業務",
       "unit_price_excl": 4000,
       "unit_price_incl": 4400,
@@ -5644,7 +5644,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "車内外清掃業務（セダン/JPN）",
       "unit_price_excl": 991.8181818181819,
       "unit_price_incl": 1091.0000000000002,
@@ -5661,7 +5661,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "車内外清掃業務（ワゴン）",
       "unit_price_excl": 1107.2727272727273,
       "unit_price_incl": 1218,
@@ -5678,7 +5678,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "オプション（シート交換）",
       "unit_price_excl": 454.5454545454545,
       "unit_price_incl": 500,
@@ -5695,7 +5695,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "オプション（除菌）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -5712,7 +5712,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "オプション（タイヤワックス）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -5729,7 +5729,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "オプション（ボディワックス）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -5746,7 +5746,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "オプション（親水）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -5763,7 +5763,7 @@
     {
       "business_line": "タクシー",
       "client": "エスコート交通",
-      "branch": "小松川",
+      "branch": null,
       "task": "オプション（窓撥水）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -6077,7 +6077,7 @@
     {
       "business_line": "タクシー",
       "client": "新星自動車",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "車内外清掃業務（隔勤）",
       "unit_price_excl": 909.090909090909,
       "unit_price_incl": 1000,
@@ -6094,7 +6094,7 @@
     {
       "business_line": "タクシー",
       "client": "新星自動車",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "車内外清掃業務（昼日勤/夜日勤）",
       "unit_price_excl": 636.3636363636364,
       "unit_price_incl": 700.0000000000001,
@@ -6111,7 +6111,7 @@
     {
       "business_line": "タクシー",
       "client": "新星自動車",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "オプション（シート）",
       "unit_price_excl": 454.5454545454545,
       "unit_price_incl": 500,
@@ -6128,7 +6128,7 @@
     {
       "business_line": "タクシー",
       "client": "新星自動車",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "車内外清掃業務（自家用車）",
       "unit_price_excl": 909.090909090909,
       "unit_price_incl": 1000,
@@ -6145,7 +6145,7 @@
     {
       "business_line": "タクシー",
       "client": "宝自動車交通",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "車内外清掃業務（全車種）",
       "unit_price_excl": 909.090909090909,
       "unit_price_incl": 1000,
@@ -6162,7 +6162,7 @@
     {
       "business_line": "タクシー",
       "client": "宝自動車交通",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "オプション（ボディワックス）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -6179,7 +6179,7 @@
     {
       "business_line": "タクシー",
       "client": "宝自動車交通",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "オプション（親水）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -6196,7 +6196,7 @@
     {
       "business_line": "タクシー",
       "client": "宝自動車交通",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "オプション（窓撥水）",
       "unit_price_excl": 181.81818181818184,
       "unit_price_incl": 200.00000000000003,
@@ -6213,7 +6213,7 @@
     {
       "business_line": "タクシー",
       "client": "宝自動車交通",
-      "branch": "ラッキータクシー",
+      "branch": null,
       "task": "オプション（シート）",
       "unit_price_excl": 454.5454545454545,
       "unit_price_incl": 500,
@@ -7592,7 +7592,7 @@
     {
       "business_line": "タクシー",
       "client": "ワールド交通",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "車内外清掃業務",
       "unit_price_excl": 909.090909090909,
       "unit_price_incl": 1000,
@@ -7609,7 +7609,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "シェアカー車両定期清掃業務一式（乗用車クラス）",
       "unit_price_excl": 1450,
       "unit_price_incl": 1595.0000000000002,
@@ -7626,7 +7626,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "シェアカー車両定期清掃業務一式（ワゴンクラス）",
       "unit_price_excl": 1850,
       "unit_price_incl": 2035.0000000000002,
@@ -7643,7 +7643,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "車内消臭除菌業務（次亜塩素酸水使用）",
       "unit_price_excl": 100,
       "unit_price_incl": 110.00000000000001,
@@ -7660,7 +7660,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "車両傷確認及び報告業務",
       "unit_price_excl": 100,
       "unit_price_incl": 110.00000000000001,
@@ -7677,7 +7677,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "コンパウンド処理業務(文庫本サイズ以上)",
       "unit_price_excl": 1700,
       "unit_price_incl": 1870.0000000000002,
@@ -7694,7 +7694,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "コンパウンド処理業務（クレジットカード以上文庫分未満）",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -7711,7 +7711,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "コンパウンド処理業務（500円玉以上クレジットカード未満）",
       "unit_price_excl": 500,
       "unit_price_incl": 550,
@@ -7728,7 +7728,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "コンパウンド処理業務（500円玉サイズ未満）",
       "unit_price_excl": 350,
       "unit_price_incl": 385.00000000000006,
@@ -7745,7 +7745,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "タッチペン処理業務（文庫分サイズ以上）",
       "unit_price_excl": 1000,
       "unit_price_incl": 1100,
@@ -7762,7 +7762,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "タッチペン処理業務（クレジットカード以上文庫分未満）",
       "unit_price_excl": 600,
       "unit_price_incl": 660,
@@ -7779,7 +7779,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "タッチペン処理業務（500円玉以上クレジットカード未満）",
       "unit_price_excl": 350,
       "unit_price_incl": 385.00000000000006,
@@ -7796,7 +7796,7 @@
     {
       "business_line": "法人リテール",
       "client": "エフピコ",
-      "branch": "明治交通本社",
+      "branch": null,
       "task": "タッチペン処理業務（500円玉サイズ未満）",
       "unit_price_excl": 200,
       "unit_price_incl": 220.00000000000003,
@@ -7932,7 +7932,7 @@
     {
       "business_line": "法人リテール",
       "client": "ラストワンマイルパートナーズ",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "軽貨物車両車内清掃業務",
       "unit_price_excl": 6000,
       "unit_price_incl": 6600.000000000001,
@@ -7949,7 +7949,7 @@
     {
       "business_line": "法人リテール",
       "client": "ラストワンマイルパートナーズ",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "軽貨物車両除菌・消臭業務",
       "unit_price_excl": 6000,
       "unit_price_incl": 6600.000000000001,
@@ -7966,7 +7966,7 @@
     {
       "business_line": "法人リテール",
       "client": "ラストワンマイルパートナーズ",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "軽貨物車両撮影業務（10枚まで）",
       "unit_price_excl": 1200,
       "unit_price_incl": 1320,
@@ -7983,7 +7983,7 @@
     {
       "business_line": "その他",
       "client": "T-Lve車両リース",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "自動車リース料（トヨタヴェルファイアZpremier:湘南33Aの…3）",
       "unit_price_excl": 119800,
       "unit_price_incl": 131780,
@@ -8000,7 +8000,7 @@
     {
       "business_line": "その他",
       "client": "アントレ業務研修費",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "出張型車両清掃・点検業務に係る研修実施費用および初期装備品一式",
       "unit_price_excl": 150000,
       "unit_price_incl": 165000,
@@ -8019,7 +8019,7 @@
     {
       "business_line": "その他",
       "client": "625横浜",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "ラッピング業務",
       "unit_price_excl": 10000,
       "unit_price_incl": 11000,
@@ -8036,7 +8036,7 @@
     {
       "business_line": "洗剤販売",
       "client": "Amazon",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "GREX(RTU)500mlスプレーボトル",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8053,7 +8053,7 @@
     {
       "business_line": "洗剤販売",
       "client": "Yahoo！",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "GREX(希釈)500mlボトル",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8070,7 +8070,7 @@
     {
       "business_line": "洗剤販売",
       "client": "自社サイト",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "GREX(希釈)2Lボトル",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8087,7 +8087,7 @@
     {
       "business_line": "洗剤販売",
       "client": "日本シナプス",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "GREX(希釈)5Lバロン",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8104,7 +8104,7 @@
     {
       "business_line": "洗剤販売",
       "client": "セイブ環境",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "GREX(希釈)10Lバロン",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8121,7 +8121,7 @@
     {
       "business_line": "洗剤販売",
       "client": "トヨタレンタリース千葉",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "GREX(希釈)20Lバロン",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8138,7 +8138,7 @@
     {
       "business_line": "洗剤販売",
       "client": "トヨタレンタリース仙台",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "マイクロファイバータオル",
       "unit_price_excl": null,
       "unit_price_incl": 0,
@@ -8155,7 +8155,7 @@
     {
       "business_line": "洗剤販売",
       "client": "トヨタレンタリース大阪",
-      "branch": "首都圏特販支社",
+      "branch": null,
       "task": "送料",
       "unit_price_excl": null,
       "unit_price_incl": 0,

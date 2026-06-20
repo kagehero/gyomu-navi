@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/lib/api";
 import type { InputUnit, LineMemoField, VehicleSelectMode } from "@/lib/reports/business-type-rules";
 import { compressReportImage } from "@/lib/reports/image-compression";
 
@@ -177,6 +177,84 @@ export function useCreateReportSession() {
       apiPost<{ item: { id: string; entry_count: number } }>("/api/reports/sessions", input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reports"] });
+    },
+  });
+}
+
+/* ---------- Drafts (一時保存) ----------
+ * Server-persisted draft of the in-progress report form. The payload is an
+ * opaque snapshot owned by ReportSessionForm; the backend stores it verbatim
+ * and creates no business_reports rows, so drafts never reach analytics.
+ */
+
+export async function saveReportDraft(
+  workDate: string,
+  businessLineId: string,
+  payload: Record<string, unknown>,
+): Promise<{ item: { id: string; saved_at: string } }> {
+  return apiPost("/api/reports/sessions/draft", {
+    work_date: workDate,
+    business_line_id: businessLineId,
+    payload,
+  });
+}
+
+export async function fetchReportDraft(
+  workDate: string,
+  businessLineId: string,
+): Promise<Record<string, unknown> | null> {
+  const qs = new URLSearchParams({
+    work_date: workDate,
+    business_line_id: businessLineId,
+  }).toString();
+  const res = await apiGet<{ item: { id: string; payload: Record<string, unknown> } | null }>(
+    `/api/reports/sessions/draft?${qs}`,
+  );
+  return res.item?.payload ?? null;
+}
+
+export async function deleteReportDraft(
+  workDate: string,
+  businessLineId: string,
+): Promise<void> {
+  const qs = new URLSearchParams({
+    work_date: workDate,
+    business_line_id: businessLineId,
+  }).toString();
+  await apiDelete(`/api/reports/sessions/draft?${qs}`);
+}
+
+/* ---------- Dispatch labour costs (派遣人件費) ---------- */
+
+export type DispatchLaborCost = {
+  id?: string;
+  name: string;
+  hours: number;
+  labor_cost: number;
+};
+
+export function useDispatchLabor(sessionId: string | null) {
+  return useQuery({
+    queryKey: ["reports", "dispatch-labor", sessionId],
+    queryFn: () =>
+      apiGet<{ items: DispatchLaborCost[] }>(
+        `/api/reports/sessions/${sessionId}/dispatch-labor`,
+      ),
+    enabled: !!sessionId,
+  });
+}
+
+export function useReplaceDispatchLabor(sessionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (items: DispatchLaborCost[]) =>
+      apiPut<{ items: DispatchLaborCost[] }>(
+        `/api/reports/sessions/${sessionId}/dispatch-labor`,
+        { items },
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["reports", "dispatch-labor", sessionId] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 }
