@@ -32,6 +32,33 @@ export class AnalyticsRangeQueryDto {
   site_id?: string;
 }
 
+/**
+ * Dimension (顧客/スタッフ/拠点/部門) aggregation with optional ranking sort.
+ * `sort_by` is whitelisted in the service; `sort_dir` defaults to desc.
+ */
+export class RankQueryDto extends AnalyticsRangeQueryDto {
+  @IsOptional()
+  @IsIn([
+    "total_count",
+    "revenue_excl",
+    "report_count",
+    "count_per_hour",
+    "revenue_excl_per_hour",
+    "dimension_name",
+  ])
+  sort_by?:
+    | "total_count"
+    | "revenue_excl"
+    | "report_count"
+    | "count_per_hour"
+    | "revenue_excl_per_hour"
+    | "dimension_name";
+
+  @IsOptional()
+  @IsIn(["asc", "desc"])
+  sort_dir?: "asc" | "desc";
+}
+
 export class DashboardQueryDto {
   @IsOptional()
   @IsString()
@@ -41,6 +68,14 @@ export class DashboardQueryDto {
 
 export class CsvExportQueryDto extends AnalyticsRangeQueryDto {
   @IsOptional()
-  @IsIn(["detail", "daily", "weekly", "monthly", "client", "staff", "site"])
-  group_by?: "detail" | "daily" | "weekly" | "monthly" | "client" | "staff" | "site";
+  @IsIn(["detail", "daily", "weekly", "monthly", "client", "staff", "site", "business_line"])
+  group_by?:
+    | "detail"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "client"
+    | "staff"
+    | "site"
+    | "business_line";
 }

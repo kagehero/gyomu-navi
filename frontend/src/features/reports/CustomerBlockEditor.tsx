@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Plus, Trash2 } from "lucide-react";
+import { Building2, Car, Check, Plus, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import {
   useMyReportBusinessTypes,
   useMyReportClients,
@@ -82,6 +92,100 @@ export function sessionToBlocks(session: ReportSession): CustomerBlockState[] {
   }
   const blocks = [...map.values()];
   return blocks.length ? blocks : [newBlock()];
+}
+
+/**
+ * Multi-select for vehicles/車番 (顧客要望: 車番一覧から複数選択). Lets the user
+ * tick several vehicles at once; on confirm the parent expands each into its
+ * own report line (1車番 = 1台). Vehicles already chosen for this business type
+ * in the block are pre-checked and disabled so they aren't duplicated.
+ */
+function VehicleMultiSelect({
+  options,
+  optionLabel,
+  alreadySelected,
+  onConfirm,
+  disabled,
+}: {
+  options: { id: string; label: string }[];
+  optionLabel: string;
+  alreadySelected: Set<string>;
+  onConfirm: (ids: string[]) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  // Reset transient checks whenever the popover closes.
+  useEffect(() => {
+    if (!open) setChecked(new Set());
+  }, [open]);
+
+  const toggle = (id: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const confirm = () => {
+    if (checked.size > 0) onConfirm([...checked]);
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="h-9" disabled={disabled}>
+          <Car className="mr-1 h-3.5 w-3.5" />
+          {optionLabel}を複数選択
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="start">
+        <Command>
+          <CommandInput placeholder={`${optionLabel}を検索…`} />
+          <CommandList>
+            <CommandEmpty>該当なし</CommandEmpty>
+            <CommandGroup>
+              {options.map((o) => {
+                const used = alreadySelected.has(o.id);
+                const isChecked = used || checked.has(o.id);
+                return (
+                  <CommandItem
+                    key={o.id}
+                    value={o.label}
+                    disabled={used}
+                    onSelect={() => !used && toggle(o.id)}
+                  >
+                    <span
+                      className={cn(
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded border",
+                        isChecked ? "bg-primary text-primary-foreground" : "opacity-50",
+                      )}
+                    >
+                      {isChecked && <Check className="h-3 w-3" />}
+                    </span>
+                    <span className={cn("truncate", used && "text-muted-foreground")}>
+                      {o.label}
+                      {used && "（選択済み）"}
+                    </span>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+          <div className="flex items-center justify-between border-t p-2">
+            <span className="text-xs text-muted-foreground">{checked.size}件選択中</span>
+            <Button type="button" size="sm" className="h-8" onClick={confirm} disabled={checked.size === 0}>
+              追加
+            </Button>
+          </div>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function CustomerBlockEditor({
@@ -226,6 +330,44 @@ export function CustomerBlockEditor({
     const lines = block.lines.filter((_, i) => i !== idx);
     onChange({ ...block, lines: lines.length ? lines : [newLine()] });
   };
+
+  /**
+   * Expand a multi-vehicle pick into one line per vehicle (1車番 = 1台). The
+   * base line at `idx` adopts the first vehicle; the rest are appended right
+   * after it, carrying the same business type and any line memo.
+   */
+  const addVehiclesToLine = (idx: number, vehicleIds: string[]) => {
+    if (vehicleIds.length === 0) return;
+    const base = block.lines[idx]!;
+    const [first, ...rest] = vehicleIds;
+    const baseLine: LineRow = {
+      ...base,
+      vehicle_id: first!,
+      count: base.count > 0 ? base.count : 1,
+    };
+    const extraLines: LineRow[] = rest.map((vid) => ({
+      key: crypto.randomUUID(),
+      business_type_id: base.business_type_id,
+      count: 1,
+      vehicle_id: vid,
+      line_memo: base.line_memo ?? null,
+    }));
+    const lines = [
+      ...block.lines.slice(0, idx),
+      baseLine,
+      ...extraLines,
+      ...block.lines.slice(idx + 1),
+    ];
+    onChange({ ...block, lines });
+  };
+
+  /** Vehicle ids already chosen for a given business type across the block. */
+  const vehiclesUsedFor = (businessTypeId: string): Set<string> =>
+    new Set(
+      block.lines
+        .filter((l) => l.business_type_id === businessTypeId && l.vehicle_id)
+        .map((l) => l.vehicle_id!),
+    );
 
   return (
     <Card className="border-dashed">
@@ -383,6 +525,18 @@ export function CustomerBlockEditor({
                           ))}
                         </SelectContent>
                       </Select>
+                      {line.business_type_id && vehicleOptions.length > 1 && (
+                        <VehicleMultiSelect
+                          optionLabel={vehicleLabel(vehicleMode)}
+                          options={vehicleOptions.map((v) => ({
+                            id: v.id,
+                            label: vehicleOptionLabel(v, vehicleMode),
+                          }))}
+                          alreadySelected={vehiclesUsedFor(line.business_type_id)}
+                          onConfirm={(ids) => addVehiclesToLine(idx, ids)}
+                          disabled={vehiclesQ.isLoading}
+                        />
+                      )}
                     </div>
                   )}
                   <div className="w-24 space-y-1">

@@ -161,14 +161,15 @@ function parseReportSheet(rows: unknown[][]): {
     const row = rows[i];
     if (!row) continue;
 
-    const a = row[0];
-    const b = row[1];
-    const c = row[2];
-    const d = row[3];
-    const e = row[4];
-    const f = row[5];
-    const g = row[6];
-    const noteRaw = row[8];
+    // Columns (0-indexed): A=ログイン, B=日付 (both blank in data rows),
+    // C=部門, D=顧客, E=拠点, F=業務, G=税別, H=税込, I=台数, J(idx 9)=備考.
+    const blCol = row[2]; // C 部門
+    const clientCol = row[3]; // D 顧客
+    const branchCol = row[4]; // E 拠点
+    const taskCol = row[5]; // F 業務
+    const priceExclCol = row[6]; // G 税別
+    const priceInclCol = row[7]; // H 税込
+    const noteRaw = row[9]; // J あおいさん宛備考
 
     if (noteRaw != null && String(noteRaw).trim() !== "") {
       if (isDittoNote(noteRaw)) {
@@ -180,7 +181,7 @@ function parseReportSheet(rows: unknown[][]): {
       currentAoisanNote = null;
     }
 
-    const nextBl = normalizeBl(a) ?? normalizeBl(b);
+    const nextBl = normalizeBl(blCol);
     if (nextBl) {
       currentBl = nextBl;
       if (!blSeen.has(currentBl)) {
@@ -189,23 +190,26 @@ function parseReportSheet(rows: unknown[][]): {
       }
     }
 
-    if (c != null && String(c).trim() !== "") {
-      currentClient = String(c).trim();
+    // A new client (D) starts a new client block; reset the branch so a stale
+    // value from the previous client doesn't leak in.
+    if (clientCol != null && String(clientCol).trim() !== "") {
+      currentClient = String(clientCol).trim();
+      currentBranch = null;
       addClientBl(currentClient, currentBl);
     }
 
-    if (d != null && String(d).trim() !== "") {
-      currentBranch = String(d).trim();
+    if (branchCol != null && String(branchCol).trim() !== "") {
+      currentBranch = String(branchCol).trim();
     }
 
-    if (currentClient && e != null && String(e).trim() !== "") {
+    if (currentClient && taskCol != null && String(taskCol).trim() !== "") {
       catalog_rows.push({
         business_line: currentBl,
         client: currentClient,
         branch: currentBranch,
-        task: String(e).trim(),
-        unit_price_excl: parseNumber(f),
-        unit_price_incl: parseNumber(g),
+        task: String(taskCol).trim(),
+        unit_price_excl: parseNumber(priceExclCol),
+        unit_price_incl: parseNumber(priceInclCol),
         aoisan_note: currentAoisanNote,
         entry_rules: parseAoisanNote(currentAoisanNote),
       });

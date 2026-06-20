@@ -34,6 +34,7 @@ import {
   useDepartments,
   useStaffs,
   useUpdateStaff,
+  useBulkApproveStaff,
   useClients,
   useBusinessLines,
   type ClientCompany,
@@ -59,6 +60,21 @@ function errorMessage(e: unknown): string {
 
 function isPending(staff: Staff): boolean {
   return !staff.login_approved_at;
+}
+
+/**
+ * A pending staff can be auto-approved in bulk only when it already meets the
+ * same prerequisites the backend enforces: a department plus ≥1 client and ≥1
+ * business line. Others must be approved individually from the edit dialog
+ * (where those assignments get set). Mirrors the server's bulkApprove guard.
+ */
+function isBulkApprovable(staff: Staff): boolean {
+  return (
+    isPending(staff) &&
+    !!staff.department_id &&
+    (staff.client_ids?.length ?? 0) >= 1 &&
+    (staff.business_line_ids?.length ?? 0) >= 1
+  );
 }
 
 function buildAssignmentsFromStaff(
@@ -405,6 +421,7 @@ function StaffFormDialog({
 export default function MasterStaffsCrud() {
   const listQ = useStaffs();
   const deleteM = useDeleteStaff();
+  const bulkApproveM = useBulkApproveStaff();
 
   const [editing, setEditing] = useState<Staff | null>(null);
   const [deleting, setDeleting] = useState<Staff | null>(null);
@@ -421,8 +438,24 @@ export default function MasterStaffsCrud() {
     }
   };
 
-  const items = listQ.data?.items ?? [];
+  const items = useMemo(() => listQ.data?.items ?? [], [listQ.data?.items]);
   const pendingCount = items.filter(isPending).length;
+  const bulkApprovable = useMemo(() => items.filter(isBulkApprovable), [items]);
+
+  const handleBulkApprove = async () => {
+    if (bulkApprovable.length === 0) return;
+    try {
+      const res = await bulkApproveM.mutateAsync(bulkApprovable.map((s) => s.id));
+      if (res.approved.length > 0) {
+        toast.success(`${res.approved.length}名のログインを承認しました`);
+      }
+      if (res.skipped.length > 0) {
+        toast.warning(`${res.skipped.length}名は設定不足のためスキップしました`);
+      }
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  };
   const { query, setQuery, results } = useTextSearch(items, (s) => [
     s.name,
     s.login_email,
@@ -438,7 +471,23 @@ export default function MasterStaffsCrud() {
             従業員は /register からログイン情報を登録します。承認待ち: {pendingCount}件
           </p>
         </div>
-        <div className="flex sm:justify-end">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          {bulkApprovable.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 border-amber-400 text-amber-700"
+              onClick={handleBulkApprove}
+              disabled={bulkApproveM.isPending}
+            >
+              {bulkApproveM.isPending ? (
+                <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-1 h-4 w-4" />
+              )}
+              一括承認（{bulkApprovable.length}名）
+            </Button>
+          )}
           <SearchInput
             value={query}
             onChange={setQuery}

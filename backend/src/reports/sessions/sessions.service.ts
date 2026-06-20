@@ -7,6 +7,7 @@ import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import type { AuthedUser } from "../../auth/types";
 import {
+  assertWorkDateNotFuture,
   insertReportSession,
   replaceReportSession,
   resolveSubmitStaffId,
@@ -16,6 +17,7 @@ import {
 import type {
   CreateSessionDto,
   ListSessionsQueryDto,
+  SaveDraftDto,
   UpdateSessionDto,
 } from "./dto";
 
@@ -30,7 +32,9 @@ export class ReportSessionsService {
 
   async list(user: AuthedUser, q: ListSessionsQueryDto) {
     const params: unknown[] = [];
-    const conds: string[] = [];
+    // Drafts (一時保存) are work-in-progress and must not appear in the
+    // submitted-report history.
+    const conds: string[] = [`rs.status = 'submitted'`];
 
     if (user.role === "employee") {
       if (!user.staffId) return { items: [] };
@@ -198,6 +202,127 @@ export class ReportSessionsService {
 
     await this.ds.query(`DELETE FROM business_reports WHERE session_id = $1`, [id]);
     await this.ds.query(`DELETE FROM report_sessions WHERE id = $1`, [id]);
+  }
+
+  // ----- drafts (一時保存) -----
+
+  /**
+   * Upsert the single draft for this staff/day/business_line. Stores the raw
+   * form snapshot as JSONB and creates NO business_reports rows, so drafts stay
+   * out of analytics. Relies on the partial unique index from migration 016.
+   */
+  async saveDraft(user: AuthedUser, body: SaveDraftDto) {
+    const staffId = resolveSubmitStaffId(user, body.staff_id);
+    assertWorkDateNotFuture(body.work_date);
+
+    const rows: Array<{ id: string }> = await this.ds.query(
+      `INSERT INTO report_sessions
+         (staff_id, work_date, business_line_id, status, draft_payload, submitted_at)
+       VALUES ($1, $2::date, $3, 'draft', $4::jsonb, now())
+       ON CONFLICT (staff_id, work_date, business_line_id) WHERE status = 'draft'
+       DO UPDATE SET draft_payload = EXCLUDED.draft_payload, updated_at = now()
+       RETURNING id`,
+      [staffId, body.work_date, body.business_line_id, JSON.stringify(body.payload)],
+    );
+    return { item: { id: rows[0]!.id, saved_at: new Date().toISOString() } };
+  }
+
+  /** Fetch the current draft for staff/day/business_line, or null. */
+  async getDraft(user: AuthedUser, workDate: string, businessLineId: string) {
+    const staffId = resolveSubmitStaffId(user);
+    const rows: Array<{ id: string; draft_payload: Record<string, unknown> }> =
+      await this.ds.query(
+        `SELECT id, draft_payload
+           FROM report_sessions
+          WHERE staff_id = $1 AND work_date = $2::date
+            AND business_line_id = $3 AND status = 'draft'
+          LIMIT 1`,
+        [staffId, workDate, businessLineId],
+      );
+    const row = rows[0];
+    return { item: row ? { id: row.id, payload: row.draft_payload } : null };
+  }
+
+  /** Discard the draft for staff/day/business_line (e.g. after submit). */
+  async deleteDraft(user: AuthedUser, workDate: string, businessLineId: string) {
+    const staffId = resolveSubmitStaffId(user);
+    await this.ds.query(
+      `DELETE FROM report_sessions
+        WHERE staff_id = $1 AND work_date = $2::date
+          AND business_line_id = $3 AND status = 'draft'`,
+      [staffId, workDate, businessLineId],
+    );
+    return { ok: true };
+  }
+
+  // ----- dispatch labour costs (派遣人件費) -----
+
+  /** List dispatch labour costs for a session (access-checked). */
+  async listDispatchLabor(user: AuthedUser, sessionId: string) {
+    const session = await this.loadSession(sessionId);
+    if (!session) throw new NotFoundException("対象が見つかりません");
+    if (!(await this.canAccessStaff(user, session.staff_id))) {
+      throw new ForbiddenException("閲覧権限がありません");
+    }
+    const items = await this.ds.query(
+      `SELECT id, name, hours::float8 AS hours, labor_cost::float8 AS labor_cost
+         FROM dispatch_labor_costs
+        WHERE session_id = $1
+        ORDER BY created_at`,
+      [sessionId],
+    );
+    return { items };
+  }
+
+  /**
+   * Replace the full set of dispatch labour costs for a session. The leader
+   * enters social派遣 staff (name + hours + cost); these never touch revenue but
+   * the analytics P&L subtracts them. Edit follows the same access rules as the
+   * session itself.
+   */
+  async replaceDispatchLabor(
+    user: AuthedUser,
+    sessionId: string,
+    items: Array<{ name: string; hours: number; labor_cost: number }>,
+  ) {
+    const session = await this.loadSession(sessionId);
+    if (!session) throw new NotFoundException("対象が見つかりません");
+
+    if (user.role === "employee") {
+      if (user.staffId !== session.staff_id) {
+        throw new ForbiddenException("編集権限がありません");
+      }
+    } else if (user.role === "manager") {
+      if (!(await this.canAccessStaff(user, session.staff_id))) {
+        throw new ForbiddenException("編集権限がありません");
+      }
+    } else if (user.role !== "admin") {
+      throw new ForbiddenException("編集権限がありません");
+    }
+
+    const qr = this.ds.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    try {
+      await qr.query(`DELETE FROM dispatch_labor_costs WHERE session_id = $1`, [sessionId]);
+      for (const it of items) {
+        const name = it.name.trim();
+        if (!name) continue;
+        await qr.query(
+          `INSERT INTO dispatch_labor_costs (session_id, name, hours, labor_cost)
+           VALUES ($1, $2, $3, $4)`,
+          [sessionId, name, it.hours, it.labor_cost],
+        );
+      }
+      await qr.commitTransaction();
+    } catch (err) {
+      if (qr.isTransactionActive) await qr.rollbackTransaction();
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
+    return this.listDispatchLabor(user, sessionId);
   }
 
   // ----- helpers -----

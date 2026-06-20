@@ -10,13 +10,22 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import {
+  useBusinessLineAnalytics,
   useClientAnalytics,
   useDailyAnalytics,
   useMonthlyAnalytics,
   useSiteAnalytics,
   useStaffAnalytics,
   useWeeklyAnalytics,
+  type SortKey,
 } from "@/features/analytics/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AnalyticsFilters } from "@/features/analytics/AnalyticsFilters";
 import { AggregationTable } from "@/features/analytics/AggregationTable";
 import { CsvExportMenu } from "@/features/analytics/CsvExportMenu";
@@ -67,11 +76,15 @@ function TabPanel({
   labelMode,
   isAdmin,
   query,
+  showPerHour = false,
+  showProfit = false,
 }: {
   title: string;
   labelHeader: string;
   labelMode: "period" | "dimension";
   isAdmin: boolean;
+  showPerHour?: boolean;
+  showProfit?: boolean;
   query: {
     isLoading: boolean;
     isError: boolean;
@@ -171,6 +184,8 @@ function TabPanel({
         isAdmin={isAdmin}
         labelHeader={labelHeader}
         labelMode={labelMode}
+        showPerHour={showPerHour}
+        showProfit={showProfit}
       />
     </div>
   );
@@ -184,7 +199,17 @@ export default function AnalyticsPage() {
 
   const [filters, setFilters] = useState(defaultFilters);
   const [tab, setTab] = useState("daily");
+  const [sortBy, setSortBy] = useState<SortKey>("total_count");
   const params = useMemo(() => filtersToParams(filters), [filters]);
+
+  // Ranking sort applies to the dimension tabs only. Per-hour keys are
+  // meaningful on the staff tab; we still send them and the backend returns
+  // NULLs (sorted last) elsewhere.
+  const dimParams = useMemo(
+    () => ({ ...params, sort_by: sortBy, sort_dir: "desc" as const }),
+    [params, sortBy],
+  );
+  const isDimensionTab = ["client", "staff", "site", "business_line"].includes(tab);
 
   useEffect(() => {
     if (isEmployee) router.replace("/");
@@ -193,9 +218,10 @@ export default function AnalyticsPage() {
   const dailyQ = useDailyAnalytics(params, tab === "daily");
   const weeklyQ = useWeeklyAnalytics(params, tab === "weekly");
   const monthlyQ = useMonthlyAnalytics(params, tab === "monthly");
-  const clientQ = useClientAnalytics(params, tab === "client");
-  const staffQ = useStaffAnalytics(params, tab === "staff");
-  const siteQ = useSiteAnalytics(params, tab === "site");
+  const clientQ = useClientAnalytics(dimParams, tab === "client");
+  const staffQ = useStaffAnalytics(dimParams, tab === "staff");
+  const siteQ = useSiteAnalytics(dimParams, tab === "site");
+  const businessLineQ = useBusinessLineAnalytics(dimParams, tab === "business_line");
 
   if (isEmployee) {
     return (
@@ -240,7 +266,37 @@ export default function AnalyticsPage() {
           <TabsTrigger value="site" className="text-xs sm:text-sm">
             現場別
           </TabsTrigger>
+          <TabsTrigger value="business_line" className="text-xs sm:text-sm">
+            部門別
+          </TabsTrigger>
         </TabsList>
+
+        {isDimensionTab && (
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">並び順（ランキング）</span>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
+              <SelectTrigger className="h-9 w-56 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="total_count">総数量が多い順</SelectItem>
+                {isAdmin && (
+                  <SelectItem value="revenue_excl">売上(税抜)が高い順</SelectItem>
+                )}
+                <SelectItem value="report_count">報告件数が多い順</SelectItem>
+                {tab === "staff" && (
+                  <SelectItem value="count_per_hour">時間当たり台数が多い順</SelectItem>
+                )}
+                {tab === "staff" && isAdmin && (
+                  <SelectItem value="revenue_excl_per_hour">
+                    時間当たり売上が高い順
+                  </SelectItem>
+                )}
+                <SelectItem value="dimension_name">名称順</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <TabsContent value="daily" className="mt-4">
           <TabPanel
@@ -249,6 +305,7 @@ export default function AnalyticsPage() {
             labelMode="period"
             isAdmin={isAdmin}
             query={dailyQ}
+            showProfit
           />
         </TabsContent>
         <TabsContent value="weekly" className="mt-4">
@@ -258,6 +315,7 @@ export default function AnalyticsPage() {
             labelMode="period"
             isAdmin={isAdmin}
             query={weeklyQ}
+            showProfit
           />
         </TabsContent>
         <TabsContent value="monthly" className="mt-4">
@@ -267,6 +325,7 @@ export default function AnalyticsPage() {
             labelMode="period"
             isAdmin={isAdmin}
             query={monthlyQ}
+            showProfit
           />
         </TabsContent>
         <TabsContent value="client" className="mt-4">
@@ -285,6 +344,8 @@ export default function AnalyticsPage() {
             labelMode="dimension"
             isAdmin={isAdmin}
             query={staffQ}
+            showPerHour
+            showProfit
           />
         </TabsContent>
         <TabsContent value="site" className="mt-4">
@@ -294,6 +355,16 @@ export default function AnalyticsPage() {
             labelMode="dimension"
             isAdmin={isAdmin}
             query={siteQ}
+          />
+        </TabsContent>
+        <TabsContent value="business_line" className="mt-4">
+          <TabPanel
+            title="部門別集計"
+            labelHeader="部門"
+            labelMode="dimension"
+            isAdmin={isAdmin}
+            query={businessLineQ}
+            showProfit
           />
         </TabsContent>
       </Tabs>

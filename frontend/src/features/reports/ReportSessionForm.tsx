@@ -24,6 +24,9 @@ import {
   useMyBusinessLines,
   useReportSession,
   useUpdateReportSession,
+  saveReportDraft,
+  fetchReportDraft,
+  deleteReportDraft,
   MAX_REPORT_IMAGES,
   type CustomerBlock,
   type ReportSession,
@@ -35,11 +38,15 @@ import {
   sessionToBlocks,
   type CustomerBlockState,
 } from "./CustomerBlockEditor";
+import { DispatchLaborEditor } from "./DispatchLaborEditor";
 
 const EMPTY_BUSINESS_LINES: { id: string; name: string; client_count?: number }[] = [];
 
-const DRAFT_STORAGE_KEY = "gyomu_navi.report_draft_v1";
-
+/**
+ * In-progress draft snapshot. Persisted server-side (一時保存) keyed by
+ * work_date + business_line_id, so it survives across devices/sessions. The
+ * object below is the opaque `payload` the backend stores verbatim.
+ */
 type Draft = {
   work_date: string;
   business_line_id: string;
@@ -48,33 +55,18 @@ type Draft = {
   saved_at: number;
 };
 
-function loadDraft(): Draft | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Draft;
-    if (!parsed.blocks || !Array.isArray(parsed.blocks)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function saveDraft(draft: Draft): void {
-  try {
-    sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
-  } catch {
-    /* storage disabled — non-fatal */
-  }
-}
-
-function clearDraft(): void {
-  try {
-    sessionStorage.removeItem(DRAFT_STORAGE_KEY);
-  } catch {
-    /* non-fatal */
-  }
+/** Narrow an opaque server payload back into a Draft, or null if malformed. */
+function toDraft(payload: Record<string, unknown> | null): Draft | null {
+  if (!payload) return null;
+  const d = payload as Partial<Draft>;
+  if (!Array.isArray(d.blocks)) return null;
+  return {
+    work_date: typeof d.work_date === "string" ? d.work_date : todayJST(),
+    business_line_id: typeof d.business_line_id === "string" ? d.business_line_id : "",
+    memo: typeof d.memo === "string" ? d.memo : "",
+    blocks: d.blocks as CustomerBlockState[],
+    saved_at: typeof d.saved_at === "number" ? d.saved_at : Date.now(),
+  };
 }
 
 function isEmptyBlocks(blocks: CustomerBlockState[]): boolean {
@@ -110,14 +102,34 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
 
   const businessLines = blQ.data?.items ?? EMPTY_BUSINESS_LINES;
 
-  // On mount (create mode only), offer to restore a sessionStorage draft.
+  // Track which (date, business_line) we've already checked for a server
+  // draft, so changing the department re-queries exactly once.
+  const [draftCheckedKey, setDraftCheckedKey] = useState<string | null>(null);
+
+  // When the department is known (create mode), fetch any server-side draft
+  // (一時保存) for this date + business line and offer to restore it.
   useEffect(() => {
-    if (isEdit) return;
-    const d = loadDraft();
-    if (d && !isEmptyBlocks(d.blocks)) {
-      setDraftBanner(d);
-    }
-  }, [isEdit]);
+    if (isEdit || !businessLineId) return;
+    const key = `${workDate}::${businessLineId}`;
+    if (draftCheckedKey === key) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const payload = await fetchReportDraft(workDate, businessLineId);
+        const d = toDraft(payload);
+        if (!cancelled && d && !isEmptyBlocks(d.blocks)) {
+          setDraftBanner(d);
+        }
+      } catch {
+        /* draft fetch is best-effort — ignore */
+      } finally {
+        if (!cancelled) setDraftCheckedKey(key);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEdit, workDate, businessLineId, draftCheckedKey]);
 
   const restoreDraft = () => {
     if (!draftBanner) return;
@@ -129,28 +141,27 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
   };
 
   const discardDraft = () => {
-    clearDraft();
+    if (businessLineId) void deleteReportDraft(workDate, businessLineId).catch(() => {});
     setDraftBanner(null);
   };
 
-  // Auto-save the in-progress draft (create mode only). Debounced ~600ms via
-  // a setTimeout cleanup. Skipped while the user is still deciding whether
-  // to restore an existing draft.
+  // Auto-save the in-progress draft to the server (create mode only). Debounced
+  // ~800ms. Skipped while the user is still deciding whether to restore an
+  // existing draft, and requires a business line (the draft key).
   useEffect(() => {
-    if (isEdit || draftBanner) return;
-    if (isEmptyBlocks(blocks) && !memo && !businessLineId) {
-      clearDraft();
-      return;
-    }
+    if (isEdit || draftBanner || !businessLineId) return;
+    if (isEmptyBlocks(blocks) && !memo) return;
     const t = setTimeout(() => {
-      saveDraft({
+      void saveReportDraft(workDate, businessLineId, {
         work_date: workDate,
         business_line_id: businessLineId,
         memo,
         blocks,
         saved_at: Date.now(),
+      }).catch(() => {
+        /* autosave is best-effort — ignore transient failures */
       });
-    }, 600);
+    }, 800);
     return () => clearTimeout(t);
   }, [isEdit, draftBanner, workDate, businessLineId, memo, blocks]);
 
@@ -318,10 +329,14 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
         await attachImageToSession(createdSessionId);
       }
       if (!isEdit) {
+        // The submitted session supersedes any draft for this date+department.
+        if (businessLineId) {
+          void deleteReportDraft(workDate, businessLineId).catch(() => {});
+        }
         setMemo("");
         setBlocks([newBlock()]);
         setImageFiles([]);
-        clearDraft();
+        setDraftCheckedKey(null);
       }
       onDone?.();
     } catch (e) {
@@ -455,6 +470,9 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
           />
         </CardContent>
       </Card>
+
+      {/* Dispatch labour costs attach to an existing session (edit mode only). */}
+      {isEdit && sessionId && <DispatchLaborEditor sessionId={sessionId} />}
 
       <Card>
         <CardHeader className="pb-2">

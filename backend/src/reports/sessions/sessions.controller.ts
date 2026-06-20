@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -18,6 +19,8 @@ import type { AuthedUser } from "../../auth/types";
 import {
   CreateSessionDto,
   ListSessionsQueryDto,
+  ReplaceDispatchLaborDto,
+  SaveDraftDto,
   UpdateSessionDto,
 } from "./dto";
 import { ReportSessionsService } from "./sessions.service";
@@ -46,6 +49,32 @@ export class ReportSessionsController {
     return this.svc.create(user, body);
   }
 
+  // ---- drafts (一時保存) — declared before `:id` so they don't get
+  //      swallowed by the UUID param route ----
+
+  @Get("draft")
+  getDraft(
+    @Query("work_date") workDate: string,
+    @Query("business_line_id") businessLineId: string,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.getDraft(user, workDate, businessLineId);
+  }
+
+  @Post("draft")
+  saveDraft(@Body() body: SaveDraftDto, @CurrentUser() user: AuthedUser) {
+    return this.svc.saveDraft(user, body);
+  }
+
+  @Delete("draft")
+  deleteDraft(
+    @Query("work_date") workDate: string,
+    @Query("business_line_id") businessLineId: string,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.deleteDraft(user, workDate, businessLineId);
+  }
+
   @Get(":id")
   detail(
     @Param("id", new ParseUUIDPipe()) id: string,
@@ -70,5 +99,24 @@ export class ReportSessionsController {
   ) {
     await this.svc.remove(user, id);
     return { ok: true };
+  }
+
+  // ---- dispatch labour costs (派遣人件費) for a session ----
+
+  @Get(":id/dispatch-labor")
+  listDispatchLabor(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.listDispatchLabor(user, id);
+  }
+
+  @Put(":id/dispatch-labor")
+  replaceDispatchLabor(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() body: ReplaceDispatchLaborDto,
+    @CurrentUser() user: AuthedUser,
+  ) {
+    return this.svc.replaceDispatchLabor(user, id, body.items);
   }
 }

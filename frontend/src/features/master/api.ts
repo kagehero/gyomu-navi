@@ -177,3 +177,23 @@ export type StaffInput = {
 export const useCreateStaff = createHook<Staff, StaffInput>("staffs");
 export const useUpdateStaff = updateHook<Staff, StaffInput>("staffs");
 export const useDeleteStaff = deleteHook("staffs");
+
+export type BulkApproveResult = {
+  approved: string[];
+  skipped: { id: string; reason: string }[];
+};
+
+/**
+ * Bulk-approve pending employee logins (顧客要望: 一括承認). Only staff that
+ * already have a department, ≥1 client and ≥1 business line are approved; the
+ * rest come back in `skipped` with a reason so the admin knows who still needs
+ * setup.
+ */
+export function useBulkApproveStaff() {
+  const inv = useInvalidate("staffs");
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      apiPost<BulkApproveResult>("/api/master/staffs/bulk-approve", { ids }),
+    onSuccess: inv,
+  });
+}
