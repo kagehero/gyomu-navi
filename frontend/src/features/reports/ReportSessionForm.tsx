@@ -30,6 +30,7 @@ import {
   MAX_REPORT_IMAGES,
   type CustomerBlock,
   type ReportSession,
+  type ReportKind,
 } from "@/features/reports/api";
 import { formatBytes } from "@/lib/reports/image-compression";
 import {
@@ -52,6 +53,7 @@ type Draft = {
   business_line_id: string;
   memo: string;
   blocks: CustomerBlockState[];
+  report_kind: ReportKind;
   saved_at: number;
 };
 
@@ -65,6 +67,7 @@ function toDraft(payload: Record<string, unknown> | null): Draft | null {
     business_line_id: typeof d.business_line_id === "string" ? d.business_line_id : "",
     memo: typeof d.memo === "string" ? d.memo : "",
     blocks: d.blocks as CustomerBlockState[],
+    report_kind: d.report_kind === "individual" ? "individual" : "site_total",
     saved_at: typeof d.saved_at === "number" ? d.saved_at : Date.now(),
   };
 }
@@ -99,6 +102,8 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imageUploading, setImageUploading] = useState(false);
   const [draftBanner, setDraftBanner] = useState<Draft | null>(null);
+  // #7 複数人拠点: 'site_total' = 当日全体の売上報告 (売上計上) / 'individual' = 個人実績 (採算用・売上非計上)
+  const [reportKind, setReportKind] = useState<ReportKind>("site_total");
 
   const businessLines = blQ.data?.items ?? EMPTY_BUSINESS_LINES;
 
@@ -137,6 +142,7 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
     setBusinessLineId(draftBanner.business_line_id);
     setMemo(draftBanner.memo);
     setBlocks(draftBanner.blocks);
+    setReportKind(draftBanner.report_kind);
     setDraftBanner(null);
   };
 
@@ -157,13 +163,14 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
         business_line_id: businessLineId,
         memo,
         blocks,
+        report_kind: reportKind,
         saved_at: Date.now(),
       }).catch(() => {
         /* autosave is best-effort — ignore transient failures */
       });
     }, 800);
     return () => clearTimeout(t);
-  }, [isEdit, draftBanner, workDate, businessLineId, memo, blocks]);
+  }, [isEdit, draftBanner, workDate, businessLineId, memo, blocks, reportKind]);
 
   useEffect(() => {
     if (!isEdit && !businessLineId && businessLines.length) {
@@ -179,6 +186,7 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
     setBusinessLineId(s.business_line_id);
     setMemo(s.memo ?? "");
     setBlocks(sessionToBlocks(s));
+    setReportKind(s.report_kind === "individual" ? "individual" : "site_total");
     setLoaded(true);
   }, [isEdit, sessionQ.data?.item, loaded]);
 
@@ -190,6 +198,7 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
     setMemo("");
     setBlocks([newBlock()]);
     setBusinessLineId("");
+    setReportKind("site_total");
     setImageFiles([]);
     setImagePreviews([]);
   }, [sessionId]);
@@ -313,6 +322,7 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
       business_line_id: businessLineId,
       memo: memo.trim() || null,
       customer_blocks: payload,
+      report_kind: reportKind,
     };
     try {
       let createdSessionId: string | null = null;
@@ -437,6 +447,36 @@ export function ReportSessionForm({ sessionId = null, onDone, onCancel }: Report
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* #7 複数人拠点: report kind — 当日全体(売上計上) vs 個人実績(採算用) */}
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label className="text-xs">報告区分</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={reportKind === "site_total" ? "default" : "outline"}
+                className="h-auto flex-col items-start gap-0.5 py-2 text-left"
+                onClick={() => setReportKind("site_total")}
+              >
+                <span className="text-sm font-medium">当日全体の売上報告</span>
+                <span className="text-[10px] font-normal opacity-80">売上に計上されます</span>
+              </Button>
+              <Button
+                type="button"
+                variant={reportKind === "individual" ? "default" : "outline"}
+                className="h-auto flex-col items-start gap-0.5 py-2 text-left"
+                onClick={() => setReportKind("individual")}
+              >
+                <span className="text-sm font-medium">個人の実績</span>
+                <span className="text-[10px] font-normal opacity-80">採算確認用・売上に計上しません</span>
+              </Button>
+            </div>
+            {reportKind === "individual" && (
+              <p className="text-[11px] text-muted-foreground">
+                この報告は個人の作業記録として保存され、売上集計には含まれません。当日の拠点全体の売上は、リーダーが「当日全体の売上報告」として別途入力してください。
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

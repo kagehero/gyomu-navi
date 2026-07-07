@@ -163,11 +163,15 @@ export type CustomerBlock = {
   entries: SessionEntry[];
 };
 
+/** 'site_total' counts as sales; 'individual' is a personal 採算 record (#7). */
+export type ReportKind = "site_total" | "individual";
+
 export type CreateSessionInput = {
   work_date: string;
   business_line_id: string;
   memo?: string | null;
   customer_blocks: CustomerBlock[];
+  report_kind?: ReportKind;
 };
 
 export function useCreateReportSession() {
@@ -283,6 +287,7 @@ export type ReportSession = {
   business_line_id: string;
   business_line_name: string;
   memo: string | null;
+  report_kind?: ReportKind;
   submitted_at: string;
   entries: ReportSessionEntry[];
 };

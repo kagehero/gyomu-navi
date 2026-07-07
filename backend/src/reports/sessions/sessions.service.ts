@@ -61,7 +61,7 @@ export class ReportSessionsService {
     const items = await this.ds.query(
       `SELECT rs.id, rs.staff_id, st.name AS staff_name,
               rs.work_date::text, rs.business_line_id, bl.name AS business_line_name,
-              rs.memo, rs.submitted_at,
+              rs.memo, rs.report_kind, rs.submitted_at,
               COALESCE(
                 (SELECT json_agg(json_build_object(
                   'id', r.id,
@@ -166,6 +166,7 @@ export class ReportSessionsService {
       customer_blocks: body.customer_blocks,
       staff_id: session.staff_id,
       session_id: id,
+      report_kind: body.report_kind,
     };
 
     const qr = this.ds.createQueryRunner();
@@ -335,10 +336,11 @@ export class ReportSessionsService {
       business_line_id: string;
       business_line_name: string;
       memo: string | null;
+      report_kind: "site_total" | "individual";
       submitted_at: Date;
     }> = await this.ds.query(
       `SELECT rs.id, rs.staff_id, rs.work_date::text, rs.business_line_id,
-              bl.name AS business_line_name, rs.memo, rs.submitted_at
+              bl.name AS business_line_name, rs.memo, rs.report_kind, rs.submitted_at
          FROM report_sessions rs
          JOIN business_lines bl ON bl.id = rs.business_line_id
         WHERE rs.id = $1`,

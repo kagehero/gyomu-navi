@@ -2,6 +2,7 @@ import { Type } from "class-transformer";
 import {
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsObject,
   IsOptional,
   IsString,
@@ -63,6 +64,13 @@ export class CreateSessionDto {
   /** Admin only — submit on behalf of another staff member. */
   @IsOptional() @IsUUID()
   staff_id?: string;
+
+  /**
+   * 'site_total' (default) counts as sales; 'individual' is a personal 採算
+   * record excluded from revenue (顧客要望: 複数人拠点のリーダー集計分離).
+   */
+  @IsOptional() @IsIn(["site_total", "individual"])
+  report_kind?: "site_total" | "individual";
 }
 
 export class UpdateSessionDto {
@@ -79,6 +87,9 @@ export class UpdateSessionDto {
   @ValidateNested({ each: true })
   @Type(() => CustomerBlockDto)
   customer_blocks!: CustomerBlockDto[];
+
+  @IsOptional() @IsIn(["site_total", "individual"])
+  report_kind?: "site_total" | "individual";
 }
 
 /**

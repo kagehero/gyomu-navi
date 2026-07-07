@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -90,6 +91,11 @@ export function ReportSessionHistory({ searchDate, onDateChange }: Props) {
                 <div>
                   <p className="text-sm font-medium">
                     {s.business_line_name}
+                    {s.report_kind === "individual" && (
+                      <Badge variant="outline" className="ml-2 border-amber-400 text-amber-700">
+                        個人実績（採算用）
+                      </Badge>
+                    )}
                     <span className="ml-2 text-xs font-normal text-muted-foreground">
                       {formatReportDateTime(s.submitted_at)} 提出
                     </span>
