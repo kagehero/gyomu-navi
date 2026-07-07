@@ -35,9 +35,16 @@ export function revenueSelectSql(userIsAdmin: boolean): string {
 export function buildReportFilters(
   user: AuthedUser,
   filters: RangeFilters,
+  opts: { salesOnly?: boolean } = { salesOnly: true },
 ): { whereSql: string; params: unknown[] } {
   const params: unknown[] = [];
   const conds: string[] = [];
+
+  // #7 複数人拠点: individual (個人採算用) sessions never count as sales. Reports
+  // with no session (rs.report_kind IS NULL) are legacy/solo and still count.
+  if (opts.salesOnly !== false) {
+    conds.push(`(rs.report_kind IS NULL OR rs.report_kind <> 'individual')`);
+  }
 
   if (filters.date) {
     params.push(filters.date);

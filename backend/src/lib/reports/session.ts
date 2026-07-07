@@ -39,6 +39,9 @@ export type CustomerBlockInput = {
   }[];
 };
 
+/** Sales source-of-truth vs personal 採算 record (顧客要望: 複数人拠点). */
+export type ReportKind = "site_total" | "individual";
+
 export type CreateSessionInput = {
   work_date: string;
   business_line_id: string;
@@ -46,6 +49,8 @@ export type CreateSessionInput = {
   customer_blocks: CustomerBlockInput[];
   staff_id?: string;
   session_id?: string | null;
+  /** Defaults to 'site_total' (counts as sales) when omitted. */
+  report_kind?: ReportKind;
 };
 
 type BusinessTypeRules = {
@@ -240,10 +245,10 @@ export async function insertReportSession(
   const reportedAt = new Date();
 
   const sessionRows: Array<{ id: string }> = await qr.query(
-    `INSERT INTO report_sessions (staff_id, work_date, business_line_id, memo, submitted_at)
-     VALUES ($1, $2::date, $3, $4, now())
+    `INSERT INTO report_sessions (staff_id, work_date, business_line_id, memo, report_kind, submitted_at)
+     VALUES ($1, $2::date, $3, $4, $5, now())
      RETURNING id`,
-    [staffId, input.work_date, input.business_line_id, input.memo ?? null],
+    [staffId, input.work_date, input.business_line_id, input.memo ?? null, input.report_kind ?? "site_total"],
   );
   const sessionId = sessionRows[0]!.id;
 
@@ -286,10 +291,11 @@ export async function replaceReportSession(
         SET work_date = $2::date,
             business_line_id = $3,
             memo = $4,
+            report_kind = COALESCE($5, report_kind),
             updated_at = now(),
             submitted_at = now()
       WHERE id = $1`,
-    [sessionId, input.work_date, input.business_line_id, input.memo ?? null],
+    [sessionId, input.work_date, input.business_line_id, input.memo ?? null, input.report_kind ?? null],
   );
 
   await qr.query(`DELETE FROM business_reports WHERE session_id = $1`, [sessionId]);
